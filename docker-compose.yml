@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  postgres:
+    container_name: billy-postgres
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=password
+        - POSTGRES_DB=billy
+    ports:
+      - "5432:5432"
+    image: postgres
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+  billy:
+    container_name: billy
+    environment:
+     - POSTGRES_USER=postgres
+     - POSTGRES_PW=password
+     - POSTGRES_DB=billy
+     - POSTGRES_SERVER=billy-postgres
+     - POSTGRES_PORT=5432
+    build: .
+    depends_on:
+     - "postgres"
