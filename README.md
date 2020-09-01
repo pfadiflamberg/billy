@@ -10,7 +10,7 @@ To access hitobito you need to provide some environment variables in the `env/hi
 HITOBITO_EMAIL=pfnörch@flamberg.ch
 HITOBITO_TOKEN=*******************
 HITOBITO_SERVER=https://db.scout.ch
-
+HITOBITO_LANG=de -- one of: de, fr, it
 ```
 
 You can generate or lookup your toke using `curl`:
