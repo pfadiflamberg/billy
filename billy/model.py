@@ -1,10 +1,6 @@
 import sqlalchemy as sa
-from sqlalchemy import create_engine
 import sqlalchemy.dialects.postgresql as sapsql
 from sqlalchemy.orm import relationship
-
-engine_string = "postgresql+psycopg2://postgres:password@billy-postgres:5432/billy"
-engine = create_engine(engine_string,echo=True)
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()

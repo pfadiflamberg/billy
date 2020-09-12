@@ -1,7 +1,20 @@
+import os
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from model import engine
+# Use the environment variables to create the engine string
+
+username = os.getenv('POSTGRES_USER')
+password = os.getenv('POSTGRES_PW')
+address = os.getenv('POSTGRES_SERVER')
+port = os.getenv('POSTGRES_PORT')
+name = os.getenv('POSTGRES_DB')
+
+engine_string = "postgresql+psycopg2://%s:%s@%s:%s/%s" % (username, password, address, port, name)
+engine = create_engine(engine_string,echo=True)
+
 # Create a sessionmaker
 Session = sessionmaker(bind=engine)
+
 
 from alembic.config import Config
 from alembic import command

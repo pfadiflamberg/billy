@@ -5,6 +5,17 @@ from sqlalchemy import pool
 
 from alembic import context
 
+# Use the environment variables to create the URL
+import os
+
+username = os.getenv('POSTGRES_USER')
+password = os.getenv('POSTGRES_PW')
+address = os.getenv('POSTGRES_SERVER')
+port = os.getenv('POSTGRES_PORT')
+name = os.getenv('POSTGRES_DB')
+
+sqlalchemyURL = "postgresql://%s:%s@%s:%s/%s" % (username, password, address, port, name)
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -25,6 +36,7 @@ target_metadata = model.Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+config.set_main_option("sqlalchemy.url", sqlalchemyURL)
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
