@@ -1,6 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from model import BulkInvoice, Invoice
 # Use the environment variables to create the engine string
 
 username = os.getenv('POSTGRES_USER')
@@ -38,3 +39,17 @@ def upgradeDatabase(version="head"):
 def downgradeDatabase(version="base"):
     # TODO: make independent of execution location, until then: downgrade via commandline
     command.downgrade(alembic_cfg, version)
+
+# Functions to access parts of the database
+
+def getBulkInvoice(session, id):
+    return session.query(BulkInvoice).get(id)
+
+def getBulkInvoiceList(session):
+    return session.query(BulkInvoice).all()
+
+def getInvoice(session, id):
+    return session.query(Invoice).get(id)
+
+def getInvoiceList(session, id):
+    return session.query(BulkInvoice).get(id).invoices
