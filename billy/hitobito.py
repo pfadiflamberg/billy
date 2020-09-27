@@ -40,6 +40,9 @@ def hitobito(request):
 
 
 def getGroups(group_id):
+    """
+    Given a group ID return the group ID of that group and all decending groups.
+    """
     def getGroupsRek(group_id, checked):
         groups = list()
         response = hitobito('groups/{group}'.format(group=group_id))
@@ -53,6 +56,14 @@ def getGroups(group_id):
                 groups += getGroupsRek(g, checked)
         return groups
     return getGroupsRek(group_id, list())
+
+
+def getGroupPeopleIDs(group_id):
+    """
+    Given a group ID return the IDs of all the people in that group.
+    """
+    response = hitobito('groups/{group}/people'.format(group=group_id))
+    return list(map(lambda x: x['id'], response['people']))
 
 
 def getPerson(person_id):
@@ -119,7 +130,3 @@ def getEmails(hitobitoPerson):
 def getRole(hitobitoPerson):
     # TODO: suggest rover, pfadi, biber
     return 'unknown'
-
-
-# print(getPerson(112636))
-print(getGroups(1147))
