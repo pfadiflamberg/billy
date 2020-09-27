@@ -16,10 +16,6 @@ app = Flask(__name__)
 
 ma = Marshmallow(app)
 
-
-def newBulkInvoice(status='created', title=None, issuing_date=None, due_date=None, text_invoice="You have an invoice.", text_reminder="Pay the invoice now"):
-    return BulkInvoice(status='created', title=title, issuing_date=issuing_date, due_date=due_date, text_invoice=text_invoice, text_reminder=text_reminder)
-
 # TODO: create proper schema
 
 
@@ -59,7 +55,7 @@ def addBulkInvoice():
     group = request.json['group']
 
     # Create add, and commit the new bulk invoice to get the id
-    newBI = newBulkInvoice(title=group)
+    newBI = BulkInvoice(group_id=group)
     session.add(newBI)
     session.commit()
 

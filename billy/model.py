@@ -7,6 +7,11 @@ import datetime
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
+try:
+    import hitobito
+except ImportError:
+    pass
+
 # Base for the SQL Schema
 class BulkInvoice(Base):
     __tablename__ = "bulk_invoice"
@@ -35,6 +40,24 @@ class BulkInvoice(Base):
     def name(cls):
         return sa.func.concat("bulk/", cls.id)
     
+    def __init__(self, group_id, title="Title", status='created', due_date=None, text_invoice="Invoice Text", text_reminder="Reminder Text"):
+        self.title=title
+        self.status=status
+        self.due_date=due_date
+        self.text_invoice=text_invoice
+        self.text_reminder=text_reminder
+
+        self.create_time=datetime.datetime.utcnow()
+        self.update_time=self.create_time
+
+        groupIDs = hitobito.getGroups(group_id)
+        peopleIDs = []
+        for gid in groupIDs:
+            peopleIDs = peopleIDs + hitobito.getGroupPeopleIDs(gid)
+        peopleIDs = list(set(peopleIDs))
+        self.invoices = [Invoice(recipient) for recipient in peopleIDs]
+
+
     # Create a property for the display name
     @hybrid_property
     def display_name(self):
@@ -84,6 +107,18 @@ class Invoice(Base):
     create_time = sa.Column(sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
     update_time = sa.Column(sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
     
+    def __init__(self, recipient, status='pending', status_message="Status Message"):
+        self.recipient = recipient
+        self.status = status
+        self.status_message = status_message
+
+        # TODO: This is very slow, name should be passed in the constructor
+        #hitobitoPerson = hitobito.getPerson(recipient)
+        #self.recipient_name = hitobitoPerson['address'].splitlines()[0]
+        
+        # for development just use id as name
+        self.recipient_name = "Person " + str(recipient)
+
     # Define a property for the name with the relative address
     @hybrid_property
     def name(self):
