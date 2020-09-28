@@ -11,9 +11,34 @@ from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 
+from flask_mail import Mail, Message
+
 # init
 app = Flask(__name__)
 
+from dotenv import load_dotenv
+load_dotenv('./env/mail.env')
+
+mailServer = os.getenv('MAIL_SERVER')
+mailPort = os.getenv('MAIL_PORT')
+mailUseTLS = bool(int(os.getenv('MAIL_USE_TLS')))
+mailUseSSL = bool(int(os.getenv('MAIL_USE_SSL')))
+mailUsername = os.getenv('MAIL_USERNAME')
+mailDefaultSender = os.getenv('MAIL_DEFAULT_SENDER')
+mailPassword = os.getenv('MAIL_PASSWORD')
+# for testing
+mailTestRecipient = os.getenv('MAIL_TEST_RECIPIENT')
+
+
+app.config['MAIL_SERVER'] = mailServer
+app.config['MAIL_PORT'] = mailPort
+app.config['MAIL_USE_TLS'] = mailUseTLS
+app.config['MAIL_USE_SSL'] = mailUseSSL
+app.config['MAIL_USERNAME'] = mailUsername
+app.config['MAIL_DEFAULT_SENDER'] = mailDefaultSender
+app.config['MAIL_PASSWORD'] = mailPassword
+
+mail = Mail(app)
 ma = Marshmallow(app)
 
 # TODO: create proper schema
@@ -46,6 +71,12 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
 
+@app.route('/mail', methods=['GET'])
+def sendMail():
+    msg = Message("Subject", recipients=[mailTestRecipient])
+    msg.body = "Body"
+    mail.send(msg)
+    return "done"
 
 @app.route('/bulk', methods=['POST'])
 def addBulkInvoice():
