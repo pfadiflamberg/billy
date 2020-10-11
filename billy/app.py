@@ -213,13 +213,12 @@ def generateInvoice(bulk_id, id):
 
 
 #currently sends a mail to the "mailTestRecipient"
-@app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['GET'])
+@app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['POST'])
 def getMailBody(bulk_id, id):
     session = db.loadSession()
     msg = Message("Subject", recipients=[mailTestRecipient])
     invoice = db.getInvoice(session, id)
     msg.body = invoice.mail_body
-    #msg.body = invoice.mail_body
     mail.send(msg)
     session.close()
     return "sent"
