@@ -29,7 +29,6 @@ mailPassword = os.getenv('MAIL_PASSWORD')
 # for testing
 mailTestRecipient = os.getenv('MAIL_TEST_RECIPIENT')
 
-
 app.config['MAIL_SERVER'] = mailServer
 app.config['MAIL_PORT'] = mailPort
 app.config['MAIL_USE_TLS'] = mailUseTLS
@@ -71,12 +70,6 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
 
-@app.route('/mail', methods=['GET'])
-def sendMail():
-    msg = Message("Subject", recipients=[mailTestRecipient])
-    msg.body = "Body"
-    mail.send(msg)
-    return "done"
 
 @app.route('/bulk', methods=['POST'])
 def addBulkInvoice():
@@ -218,6 +211,18 @@ def generateInvoice(bulk_id, id):
     session.close()
     return "inv_link"
 
+
+#currently sends a mail to the "mailTestRecipient"
+@app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['GET'])
+def getMailBody(bulk_id, id):
+    session = db.loadSession()
+    msg = Message("Subject", recipients=[mailTestRecipient])
+    invoice = db.getInvoice(session, id)
+    msg.body = invoice.mail_body
+    #msg.body = invoice.mail_body
+    mail.send(msg)
+    session.close()
+    return "sent"
 
 if __name__ == '__main__':
     app.run(debug=False)
