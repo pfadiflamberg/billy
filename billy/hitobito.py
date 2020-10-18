@@ -74,10 +74,21 @@ def getPerson(person_id):
         'id': p['id'],
         'salutation': getSalutation(p),
         'role': getRole(p),
-        'address': getAddress(p),
+        'addr': getAddress(p),
         'emails': getEmails(p),
     }
     return person
+
+
+def getAddress(hitobitoPerson):
+    return '\n'.join([
+        '{firstName} {lastName} / {nickname}'.format(
+            firstName=hitobitoPerson['first_name'], lastName=hitobitoPerson['last_name'], nickname=hitobitoPerson['nickname']),
+        '{street}'.format(
+            street=hitobitoPerson['address']),
+        '{zip} {town}'.format(
+            zip=hitobitoPerson['zip_code'], town=hitobitoPerson['town'])
+    ])
 
 
 def getHitobitoPerson(raw):
@@ -100,19 +111,6 @@ def getSalutation(hitobitoPerson):
     else:
         salutation += hitobitoPerson['first_name']
     return salutation
-
-
-def getAddress(hitobitoPerson):
-    return '\n'.join([
-        '{firstName} {lastName}'.format(
-            firstName=hitobitoPerson['first_name'], lastName=hitobitoPerson['last_name']),
-        '{street}'.format(
-            street=hitobitoPerson['address']),
-        '{zip} {town}'.format(
-            zip=hitobitoPerson['zip_code'], town=hitobitoPerson['town']),
-        '{country}'.format(
-            country=hitobitoPerson['country'])
-    ])
 
 
 def getEmails(hitobitoPerson):
