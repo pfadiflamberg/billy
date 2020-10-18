@@ -169,4 +169,4 @@ POST /bulk/<id>/invocies/<id>:generate
 This will generate the invoices as pdf and return a link to download it.
 
 #### TODO:
-- [] Create Frontend
+- [ ] Create Frontend
