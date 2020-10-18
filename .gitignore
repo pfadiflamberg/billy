@@ -131,6 +131,9 @@ dmypy.json
 # IDE
 .vscode
 .devcontainer
+.idea
 
 # other
 .DS_store
+*.pdf
+*.svg
