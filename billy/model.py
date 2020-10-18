@@ -1,7 +1,7 @@
 import os
 
 import sqlalchemy as sa
-import sqlalchemy.dialects.postgresql as sapsql
+from sqlalchemy.dialects.mysql import ENUM 
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 import datetime
@@ -27,7 +27,7 @@ except ImportError:
 class BulkInvoice(Base):
     __tablename__ = "bulk_invoice"
 
-    status = sa.Column(sapsql.ENUM('created', 'issued', 'closed', name='bulk_invoice_status'), nullable=False)
+    status = sa.Column(ENUM('created', 'issued', 'closed', name='bulk_invoice_status'), nullable=False)
 
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -113,7 +113,7 @@ class Invoice(Base):
 
     esr = sa.Column(sa.String(length = 27), unique=True)
 
-    status = sa.Column(sapsql.ENUM('pending', 'paid', 'annulled', name='invoice_status'), nullable=False)
+    status = sa.Column(ENUM('pending', 'paid', 'annulled', name='invoice_status'), nullable=False)
     status_message = sa.Column(sa.Text)
 
     recipient = sa.Column(sa.Integer)
