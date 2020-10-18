@@ -1,31 +1,33 @@
+from alembic import command
+from alembic.config import Config
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from model import BulkInvoice, Invoice
 # Use the environment variables to create the engine string
 
-username = os.getenv('POSTGRES_USER')
-password = os.getenv('POSTGRES_PW')
-address = os.getenv('POSTGRES_SERVER')
-port = os.getenv('POSTGRES_PORT')
-name = os.getenv('POSTGRES_DB')
+username = os.getenv('MYSQL_USER')
+password = os.getenv('MYSQL_PW')
+address = os.getenv('MYSQL_SERVER')
+port = os.getenv('MYSQL_PORT')
+name = os.getenv('MYSQL_DB')
 
-engine_string = "postgresql+psycopg2://%s:%s@%s:%s/%s" % (username, password, address, port, name)
-engine = create_engine(engine_string,echo=True)
+engine_string = "mysql+mysqldb://%s:%s@%s:%s/%s" % (
+    username, password, address, port, name)
+engine = create_engine(engine_string, echo=True)
 
 # Create a sessionmaker
 Session = sessionmaker(bind=engine)
 
 
-from alembic.config import Config
-from alembic import command
 # Read the config
 alembic_cfg = Config('alembic.ini')
 
 # Load and return a session to the billy database
 
+
 def loadSession():
-    """"""    
+    """"""
     return Session()
 
 
@@ -42,14 +44,18 @@ def downgradeDatabase(version="base"):
 
 # Functions to access parts of the database
 
+
 def getBulkInvoice(session, id):
     return session.query(BulkInvoice).get(id)
+
 
 def getBulkInvoiceList(session):
     return session.query(BulkInvoice).all()
 
+
 def getInvoice(session, id):
     return session.query(Invoice).get(id)
+
 
 def getInvoiceList(session, id):
     return session.query(BulkInvoice).get(id).invoices

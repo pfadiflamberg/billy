@@ -1,3 +1,5 @@
+import sys
+from billy import model
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -8,13 +10,14 @@ from alembic import context
 # Use the environment variables to create the URL
 import os
 
-username = os.getenv('POSTGRES_USER')
-password = os.getenv('POSTGRES_PW')
-address = os.getenv('POSTGRES_SERVER')
-port = os.getenv('POSTGRES_PORT')
-name = os.getenv('POSTGRES_DB')
+username = os.getenv('MYSQL_USER')
+password = os.getenv('MYSQL_PW')
+address = os.getenv('MYSQL_SERVER')
+port = os.getenv('MYSQL_PORT')
+name = os.getenv('MYSQL_DB')
 
-sqlalchemyURL = "postgresql://%s:%s@%s:%s/%s" % (username, password, address, port, name)
+sqlalchemyURL = "postgresql://%s:%s@%s:%s/%s" % (
+    username, password, address, port, name)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -26,9 +29,7 @@ fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-import os, sys
 sys.path.append(os.path.abspath(os.getcwd()))
-from billy import model
 target_metadata = model.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -37,6 +38,7 @@ target_metadata = model.Base.metadata
 # ... etc.
 
 config.set_main_option("sqlalchemy.url", sqlalchemyURL)
+
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
