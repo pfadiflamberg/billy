@@ -11,17 +11,41 @@ from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 
+from flask_mail import Mail, Message
+
 # init
 app = Flask(__name__)
 
+from dotenv import load_dotenv
+load_dotenv('./env/mail.env')
+
+mailServer = os.getenv('MAIL_SERVER')
+mailPort = os.getenv('MAIL_PORT')
+mailUseTLS = bool(int(os.getenv('MAIL_USE_TLS')))
+mailUseSSL = bool(int(os.getenv('MAIL_USE_SSL')))
+mailUsername = os.getenv('MAIL_USERNAME')
+mailDefaultSender = os.getenv('MAIL_DEFAULT_SENDER')
+mailPassword = os.getenv('MAIL_PASSWORD')
+# for testing
+mailTestRecipient = os.getenv('MAIL_TEST_RECIPIENT')
+
+app.config['MAIL_SERVER'] = mailServer
+app.config['MAIL_PORT'] = mailPort
+app.config['MAIL_USE_TLS'] = mailUseTLS
+app.config['MAIL_USE_SSL'] = mailUseSSL
+app.config['MAIL_USERNAME'] = mailUsername
+app.config['MAIL_DEFAULT_SENDER'] = mailDefaultSender
+app.config['MAIL_PASSWORD'] = mailPassword
+
+mail = Mail(app)
 ma = Marshmallow(app)
 
-# TODO: create proper schema
 
 
 class InvoiceSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Invoice
+
 
 
 # Create the Schemas for Invoices and lists of them
@@ -92,10 +116,12 @@ def updateBulkInvoice(id):
     bi = db.getBulkInvoice(session, id)
 
     # Get json paramters, default to old if not supplied
+    text_mail = request.json.get('text_mail', bi.text_mail)
     text_invoice = request.json.get('text_invoice', bi.text_invoice)
     text_reminder = request.json.get('text_reminder', bi.text_reminder)
 
     # Update the attributes
+    bi.text_mail = text_mail
     bi.text_invoice = text_invoice
     bi.text_reminder = text_reminder
 
@@ -187,6 +213,17 @@ def generateInvoice(bulk_id, id):
     session.close()
     return "inv_link"
 
+
+#currently sends a mail to the "mailTestRecipient"
+@app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['POST'])
+def getMailBody(bulk_id, id):
+    session = db.loadSession()
+    msg = Message("Subject", recipients=[mailTestRecipient])
+    invoice = db.getInvoice(session, id)
+    msg.body = invoice.mail_body
+    mail.send(msg)
+    session.close()
+    return "sent"
 
 if __name__ == '__main__':
     app.run(debug=False)

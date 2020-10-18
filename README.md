@@ -21,6 +21,23 @@ curl -d "person[email]=pfnörch@flamberg.ch" \
      https://db.scout.ch/users/sign_in.json
 ```
 
+To use mail functionality, you need to provide the server details for the mail server in `env/mail.env`:
+
+```txt
+MAIL_SERVER=mail.examplemailserver.org --smtp address
+MAIL_PORT=25 --smpt port
+MAIL_USE_TLS=0 --0 or 1
+MAIL_USE_SSL=1 --0 or 1
+MAIL_USERNAME=exampleaddress@examplemailserver.org
+MAIL_DEFAULT_SENDER=exampleaddress@examplemailserver.org
+MAIL_PASSWORD=***********
+
+MAIL_TEST_RECIPIENT=testrecipient@examplemailerver.org
+```
+
+The last variable is only used during testing, when you don't want to send emails to real people.
+
+
 #### Run with Docker-Compose
 
 Run: `docker-compose up`
@@ -150,3 +167,6 @@ POST /bulk/<id>/invocies/<id>:generate
 ```
 
 This will generate the invoices as pdf and return a link to download it.
+
+#### TODO:
+- [ ] Create Frontend

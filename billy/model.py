@@ -1,11 +1,22 @@
+import os
+
 import sqlalchemy as sa
 import sqlalchemy.dialects.postgresql as sapsql
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 import datetime
 
+import stdnum.ch.esr as stdnum_esr
+
+from flask import render_template_string
+
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
+
+from dotenv import load_dotenv
+load_dotenv('./env/bank.env')
+prefix = os.getenv('BANK_REF_PREFIX')
+REF_NUM_LENGTH=27
 
 try:
     import hitobito
@@ -16,7 +27,7 @@ except ImportError:
 class BulkInvoice(Base):
     __tablename__ = "bulk_invoice"
 
-    status = sa.Column(sapsql.ENUM('created', 'issued', 'closed', name='bulk_invoice_status'))
+    status = sa.Column(sapsql.ENUM('created', 'issued', 'closed', name='bulk_invoice_status'), nullable=False)
 
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -24,6 +35,7 @@ class BulkInvoice(Base):
     issuing_date = sa.Column(sa.TIMESTAMP)
     due_date = sa.Column(sa.TIMESTAMP)
 
+    text_mail = sa.Column(sa.Text)
     text_invoice = sa.Column(sa.Text)
     text_reminder = sa.Column(sa.Text)
 
@@ -40,10 +52,11 @@ class BulkInvoice(Base):
     def name(cls):
         return sa.func.concat("bulk/", cls.id)
     
-    def __init__(self, group_id, title="Title", status='created', due_date=None, text_invoice="Invoice Text", text_reminder="Reminder Text"):
+    def __init__(self, group_id, title="Title", status='created', due_date=None, text_mail="{{ salutation }}, \n Dies ist eine Testmail\n Grüsse Pfnörch", text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch", text_reminder="Reminder Text"):
         self.title=title
         self.status=status
         self.due_date=due_date
+        self.text_mail = text_mail
         self.text_invoice=text_invoice
         self.text_reminder=text_reminder
 
@@ -55,7 +68,7 @@ class BulkInvoice(Base):
         for gid in groupIDs:
             peopleIDs = peopleIDs + hitobito.getGroupPeopleIDs(gid)
         peopleIDs = list(set(peopleIDs))
-        self.invoices = [Invoice(recipient) for recipient in peopleIDs]
+        self.invoices = [Invoice(recipient, self.create_time.strftime("%Y%m%d")) for recipient in peopleIDs]
 
 
     # Create a property for the display name
@@ -98,7 +111,9 @@ class Invoice(Base):
 
     bulk_invoice_id = sa.Column(sa.Integer, sa.ForeignKey("bulk_invoice.id"), nullable = False)
 
-    status = sa.Column(sapsql.ENUM('pending', 'paid', 'annulled', name='invoice_status'))
+    esr = sa.Column(sa.String(length = 27), unique=True)
+
+    status = sa.Column(sapsql.ENUM('pending', 'paid', 'annulled', name='invoice_status'), nullable=False)
     status_message = sa.Column(sa.Text)
 
     recipient = sa.Column(sa.Integer)
@@ -107,10 +122,14 @@ class Invoice(Base):
     create_time = sa.Column(sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
     update_time = sa.Column(sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
     
-    def __init__(self, recipient, status='pending', status_message="Status Message"):
+    def __init__(self, recipient, datestring, status='pending', status_message="Status Message"):
         self.recipient = recipient
         self.status = status
         self.status_message = status_message
+        # generate reference number
+        end = str(recipient) + "000" + datestring
+        no_check_digit = prefix + ("0"*(REF_NUM_LENGTH-len(prefix)-len(end)-1)) + end
+        self.esr = no_check_digit + stdnum_esr.calc_check_digit(no_check_digit)
 
         # TODO: This is very slow, name should be passed in the constructor
         #hitobitoPerson = hitobito.getPerson(recipient)
@@ -128,6 +147,10 @@ class Invoice(Base):
     @name.expression
     def name(cls):
         return sa.func.concat("bulk/", cls.bulk_invoice_id, "/invoices/", cls.id)
+
+    @hybrid_property
+    def mail_body(self):
+        return render_template_string(self.bulk_invoice.text_mail, salutation = hitobito.getPerson(self.recipient)['salutation']) + "\n \n REF: " + self.esr
 
     # Define the relationship between the Invoice and its BulkInvoice
     bulk_invoice = relationship("BulkInvoice", back_populates="invoices")

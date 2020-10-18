@@ -20,6 +20,8 @@ services:
      - POSTGRES_DB=billy
      - POSTGRES_SERVER=billy-postgres
      - POSTGRES_PORT=5432
+     - BANK_IBAN=CH4431999123000889012
+     - BANK_REF_PREFIX=123456
     build: .
     ports:
       - "5000:5000"
