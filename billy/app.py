@@ -40,12 +40,12 @@ app.config['MAIL_PASSWORD'] = mailPassword
 mail = Mail(app)
 ma = Marshmallow(app)
 
-# TODO: create proper schema
 
 
 class InvoiceSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Invoice
+
 
 
 # Create the Schemas for Invoices and lists of them
@@ -116,10 +116,12 @@ def updateBulkInvoice(id):
     bi = db.getBulkInvoice(session, id)
 
     # Get json paramters, default to old if not supplied
+    text_mail = request.json.get('text_mail', bi.text_mail)
     text_invoice = request.json.get('text_invoice', bi.text_invoice)
     text_reminder = request.json.get('text_reminder', bi.text_reminder)
 
     # Update the attributes
+    bi.text_mail = text_mail
     bi.text_invoice = text_invoice
     bi.text_reminder = text_reminder
 
