@@ -7,9 +7,11 @@ services:
       - MYSQL_USER=user
       - MYSQL_PASSWORD=password
       - MYSQL_DATABASE=billy
+      - MYSQL_RANDOM_ROOT_PASSWORD=1
     ports:
-      - "5432:5432"
+      - "3306:3306"
     image: mysql
+    command: --default-authentication-plugin=mysql_native_password
     volumes:
       - ./sql:/docker-entrypoint-initdb.d
   billy:
@@ -19,7 +21,7 @@ services:
       - MYSQL_PW=password
       - MYSQL_DB=billy
       - MYSQL_SERVER=mysql
-      - MYSQL_PORT=5432
+      - MYSQL_PORT=3306
       - BANK_IBAN=CH4431999123000889012
       - BANK_REF_PREFIX=123456
     build: .

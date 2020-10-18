@@ -1,5 +1,4 @@
 import sys
-from billy import model
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -16,7 +15,7 @@ address = os.getenv('MYSQL_SERVER')
 port = os.getenv('MYSQL_PORT')
 name = os.getenv('MYSQL_DB')
 
-sqlalchemyURL = "postgresql://%s:%s@%s:%s/%s" % (
+sqlalchemyURL = "mysql://%s:%s@%s:%s/%s" % (
     username, password, address, port, name)
 
 # this is the Alembic Config object, which provides
@@ -30,6 +29,7 @@ fileConfig(config.config_file_name)
 # add your model's MetaData object here
 # for 'autogenerate' support
 sys.path.append(os.path.abspath(os.getcwd()))
+from billy import model
 target_metadata = model.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
