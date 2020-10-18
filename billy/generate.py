@@ -23,7 +23,8 @@ def add_multiline_text(dwg, text, insert=(0, 0), font_size='14px', font_family=N
         ))
 
 
-def bill(text_body, account, creditor, hitobito_debtor, hitobito_sender, ref, amount):
+def bill(title, text_body, account, creditor, hitobito_debtor, hitobito_sender, ref, amount):
+    # TODO: handle title
     """
     Generate returnes the PDF of a bill.
     """

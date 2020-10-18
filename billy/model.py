@@ -80,9 +80,10 @@ class BulkInvoice(Base):
     invoices = relationship("Invoice", back_populates = "bulk_invoice")
 
     # Functions for interacting with the BulkInvoice
-    def issue(self, issuing_date=None):
+    def issue(self):
         # TODO: add functionality
-        self.issuing_date= datetime.datetime.utcnow() if issuing_date == None else issuing_date 
+        self.issuing_date= datetime.datetime.utcnow()
+        self.due_date = self.issuing_date + datetime.timedelta(days=30)
         self.status = 'issued'
 
     def close(self):

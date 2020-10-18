@@ -119,11 +119,13 @@ def updateBulkInvoice(id):
     text_mail = request.json.get('text_mail', bi.text_mail)
     text_invoice = request.json.get('text_invoice', bi.text_invoice)
     text_reminder = request.json.get('text_reminder', bi.text_reminder)
+    title = request.json.get('title', bi.title)
 
     # Update the attributes
     bi.text_mail = text_mail
     bi.text_invoice = text_invoice
     bi.text_reminder = text_reminder
+    bi.title = title
 
     # Dump the data, commit and close the session
     res = jsonify(bulkInvoiceSchema.dump(bi))
@@ -174,6 +176,7 @@ def sendBulkInvoice(id):
 
 @app.route('/bulk/<id>:generate', methods=['POST'])
 def generateBulkInvoice(id):
+    # TODO: Add functionality
     session = db.loadSession()
 
     bi = db.getBulkInvoice(session, id)
@@ -202,6 +205,24 @@ def getInvoices(id):
     session.close()
     return res
 
+@app.route('/bulk/<bulk_id>/invoices/<id>', methods=['PUT'])
+def updateInvoice(bulk_id, id):
+    session = db.loadSession()
+
+    # Get Invoice
+    invoice = db.getInvoice(session, id)
+    
+    # Get json paramsk
+    status = request.json.get('status', invoice.status)
+    status_message = request.json.get('status_message', invoice.status_message)
+    
+    invoice.status = status
+    invoice.status_message = status_message
+
+    res = jsonify(invoiceSchema.dump(invoice))
+    session.commit()
+    session.close()
+    return res
 
 @app.route('/bulk/<bulk_id>/invoices/<id>:generate', methods=['POST'])
 def generateInvoice(bulk_id, id):
