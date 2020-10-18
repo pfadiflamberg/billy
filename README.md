@@ -67,6 +67,8 @@ Run: `docker-compose up`
 POST /bulk
 ```
 
+Create a new bulk invoice.
+
 | Name  | Description | Example | Required |
 |-------|-------------|---------|----------|
 | group | The group (and its children) that are added as recipients. |         | yes |
@@ -143,6 +145,19 @@ This will generate all pending invoices as pdf and return a link to download the
 ```
 GET /bulk/<id>/invoices/<id>
 ```
+
+#### Put
+
+```
+GET /bulk/<id>/invoices/<id>
+```
+
+Update an indivual invoice.
+
+| Name  | Description | Example | Required |
+|-------|-------------|---------|----------|
+| status | Update the status of the invoice. | paid, annulled | no |
+| status_message | Add a status message. (should not be used yet) | | no | 
 
 #### List
 
