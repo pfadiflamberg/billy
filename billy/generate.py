@@ -1,12 +1,10 @@
 from qrbill.bill import QRBill, A4, mm
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPDF
-
+import os
 import svgwrite
-import re
+import cairosvg
 
 TMP_SVG_FILE = 'tmp.svg'
-
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def add_multiline_text(dwg, text, insert=(0, 0), font_size='14px', font_family=None):
     """
@@ -23,7 +21,6 @@ def add_multiline_text(dwg, text, insert=(0, 0), font_size='14px', font_family=N
 
 
 def bill(title, text_body, account, creditor, hitobito_debtor, hitobito_sender, ref, amount):
-    # TODO: handle title
     """
     Generate returnes the PDF of a bill.
     """
@@ -44,30 +41,32 @@ def bill(title, text_body, account, creditor, hitobito_debtor, hitobito_sender, 
     bill.transform_to_full_page(dwg, bill.draw_bill(dwg))
     # add address field
     xr = 30
-    xl = 460
-    y = 200
+    window_left = 400
+    window_top = 200
     # Address block
     # Return address, splitted over two lines
     l = hitobito_sender['addr'].split('\n')
     send_back_addr_delimiter = 1
     dwg.add(dwg.text(
         ', '.join(l[:send_back_addr_delimiter]),
-        insert=(xl, y)
+        insert=(window_left, window_top),
+        font_size='10px'
     ))
     dwg.add(dwg.text(
         ', '.join(l[send_back_addr_delimiter:]),
-        insert=(xl, y+15)
+        insert=(window_left, window_top+14),
+        font_size='10px'
     ))
     # PP image by Swiss Post
     dwg.add(dwg.image(
-        href='resources/images/pp.png',
-        insert=(xl, y + 20),
-        size=(234, 65),
+        href=BASE_PATH + '/resources/images/pp.png',
+        insert=(window_left, window_top + 18),
+        size=(187, 52),
     ))
     # recipient address
     add_multiline_text(dwg, hitobito_debtor['addr'],
-                       insert=(xl, y+65),
-                       font_size='16px',
+                       insert=(window_left, window_top+60),
+                       font_size='14px',
                        font_family="helvetica"
                        )
     # header
@@ -84,28 +83,26 @@ def bill(title, text_body, account, creditor, hitobito_debtor, hitobito_sender, 
                        )
     # Logo
     dwg.add(dwg.image(
-        href='resources/images/logo.png',
+        href=BASE_PATH + '/resources/images/logo.png',
         insert=(550, 40),
         size=(150, 60),
+        font_weight="bold",
+        font_family='Goblin One'
     ))
     # add title
     dwg.add(dwg.text(
-        'Jahresrechnung',
+        title,
         font_size='18px',
-        insert=(xr, 300)
+        style='font-weight:bold;',
+        font_family='helvetica',
+        insert=(xr, 320)
     ))
     add_multiline_text(dwg, text_body,
                        insert=(xr, 350),
-                       font_size='14px',
+                       font_size='12px',
                        )
     dwg.saveas(TMP_SVG_FILE)
     # convert svg to pdf
-    return svg2rlg(TMP_SVG_FILE)
-
-
-def billAsFile(drawing, file):
-    renderPDF.drawToFile(drawing, file)
-
-
-def billAsString(drawing):
-    return renderPDF.drawToString(drawing)
+    return cairosvg.svg2pdf(
+        file_obj=open(TMP_SVG_FILE, 'rb'),
+    )

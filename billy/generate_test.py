@@ -6,7 +6,7 @@ r = hitobito.getPerson(43867)
 print(p)
 
 drawing = generate.bill(
-    title="Title",
+    title="Jahresrechnung",
     text_body="""
     Jedes Jahr erhalten alle Stufen, jeder Harst und Zug einen Beitrag aus der Korpskasse, um Anschaffungen
          von Material und andere Ausgaben zu finanzieren. Ihr Sohn ist während den Übungen und Lagern, sowie bei
@@ -33,4 +33,6 @@ drawing = generate.bill(
     ref='210000000003139471430009017'
 )
 
-generate.billAsFile(drawing, "tmp.pdf")
+f = open('tmp.pdf', 'wb')
+f.write(drawing)
+f.close()
