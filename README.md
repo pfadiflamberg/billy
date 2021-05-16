@@ -157,7 +157,7 @@ Update an indivual invoice.
 | Name  | Description | Example | Required |
 |-------|-------------|---------|----------|
 | status | Update the status of the invoice. | paid, annulled | no |
-| status_message | Add a status message. (should not be used yet) | | no | 
+| status_message | Add a status message. (should not be used yet) | | no |
 
 #### List
 
@@ -185,3 +185,4 @@ This will generate the invoices as pdf and return a link to download it.
 
 #### TODO:
 - [ ] Create Frontend
+- [ ] make sure we don't run as root

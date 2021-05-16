@@ -14,8 +14,8 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - ./sql:/docker-entrypoint-initdb.d
-  billy:
-    container_name: billy
+  backend:
+    container_name: billy-backend
     environment:
       - MYSQL_USER=user
       - MYSQL_PW=password
@@ -29,3 +29,8 @@ services:
       - "5000:5000"
     depends_on:
       - "mysql"
+  frontend:
+    container_name: billy-frontend
+    build: frontend
+    ports:
+      - "1921:8080"
