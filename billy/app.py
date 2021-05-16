@@ -5,14 +5,13 @@ import db
 
 from loguru import logger
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_marshmallow import Marshmallow
 from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 
 from flask_mail import Mail, Message
-
 # init
 app = Flask(__name__)
 
@@ -166,7 +165,9 @@ def sendBulkInvoice(id):
     session = db.loadSession()
 
     bi = db.getBulkInvoice(session, id)
-    bi.send()
+    
+    for msg in bi.get_messages():
+        mail.send(msg)
 
     res = jsonify(bulkInvoiceSchema.dump(bi))
     session.commit()
@@ -229,22 +230,28 @@ def generateInvoice(bulk_id, id):
     session = db.loadSession()
 
     invoice = db.getInvoice(session, id)
-    invoice.generate()
 
+    binary_pdf = invoice.generate()
+    response = make_response(binary_pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = \
+        'inline; filename=%s.pdf' % 'invoice'
+        
     session.close()
-    return "inv_link"
+    return response
 
 
 #currently sends a mail to the "mailTestRecipient"
 @app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['POST'])
 def getMailBody(bulk_id, id):
     session = db.loadSession()
-    msg = Message("Subject", recipients=[mailTestRecipient])
+
     invoice = db.getInvoice(session, id)
-    msg.body = invoice.mail_body
+    msg = invoice.get_message()
     mail.send(msg)
     session.close()
+
     return "sent"
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=False, host="0.0.0.0")
