@@ -29,7 +29,6 @@ drawing = generate.bill(
     },
     hitobito_debtor=p,
     hitobito_sender=r,
-    amount='12.12',
     ref='210000000003139471430009017'
 )
 
