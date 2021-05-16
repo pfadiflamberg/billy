@@ -8,20 +8,13 @@ print(p)
 drawing = generate.bill(
     title="Jahresrechnung",
     text_body="""
-    Jedes Jahr erhalten alle Stufen, jeder Harst und Zug einen Beitrag aus der Korpskasse, um Anschaffungen
-         von Material und andere Ausgaben zu finanzieren. Ihr Sohn ist während den Übungen und Lagern, sowie bei
-         der Hin- und Rückfahrt zu Pfadianlässen subsidiär gegen Unfall versichert. Für die Pfadileiter besteht
-         zudem eine Haftpflichtversicherung. Um diese Kosten decken zu können, sind wir auf den Jahresbeitrag je-
-         des einzelnen Flambergers angewiesen.
-         Leider mussten wir feststellen, dass der Jahresbeitrag von Leandro für das Jahr 2019 noch nicht bezahlt
-          wurde. Wir bitten Sie, den Jahresbeitrag von CHF 50.00 in den nächsten 10 Tagen auf unser Bankkonto
-          einzuzahlen. Bitte benützen Sie dazu ausschliesslich den untenstehenden Einzahlungsschein (mehrere
-          Jahresbeiträge bitte jeweils separat). Beim eBanking bitten wir Sie, die Referenznummer unbedingt
-          aufzuführen. Sie erleichtern uns damit die Arbeit wesentlich. Besonders dankbar sind wir denjenigen,
-          die den Betrag grosszügig aufrunden.
-         Sollte Ihr Sohn nicht mehr Mitglied unseres Korps sein und diesen Brief irrtümlicherweise erhalten
-         haben, so bitten wir Sie höflich, dies dem Korpskassier (Adresse siehe oben) schriftlich oder per Email
-         mitzuteilen.
+    Jedes Jahr erhalten alle Stufen, jeder Harst und Zug einen Beitrag aus der Korpskasse, um Anschaffungen von Material
+    und anderen Ausgaben zu finanzieren. Ihr Sohn ist während den Übungen und Lagern, sowie bei der Hin- und Rückfahrt zu
+    Pfadianlässen subsidiär gegen Unfall versichert. Für die Pfadileiter besteht zudem eine Haftpflichtversicherung. Um diese
+    Kosten decken zu können, sind wir auf den Jahresbeitrag angewiesen.
+    
+    Der Jahresbeitrag für das Jahr 2021 beträgt CHF 70.00. Wir bitten Sie, den Jahresbeitrag bis zum oben angegebenen Datum auf
+    unser Bankkonto einzuzahlen.
     """,
     account='CH4031000039529071000',
     creditor={
@@ -31,7 +24,3 @@ drawing = generate.bill(
     hitobito_sender=r,
     ref='210000000003139471430009017'
 )
-
-f = open('tmp.pdf', 'wb')
-f.write(drawing)
-f.close()
