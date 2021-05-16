@@ -3,7 +3,6 @@ from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPDF
 
 import svgwrite
-import qrbill
 import re
 
 TMP_SVG_FILE = 'tmp.svg'

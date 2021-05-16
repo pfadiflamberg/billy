@@ -22,7 +22,7 @@ services:
       - MYSQL_DB=billy
       - MYSQL_SERVER=mysql
       - MYSQL_PORT=3306
-      - BANK_IBAN=CH4431999123000889012
+      - BANK_IBAN=CH4031000039529071000
       - BANK_REF_PREFIX=123456
     build: .
     ports:

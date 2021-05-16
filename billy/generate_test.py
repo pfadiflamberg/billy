@@ -6,7 +6,7 @@ r = hitobito.getPerson(43867)
 print(p)
 
 drawing = generate.bill(
-    title="Title"
+    title="Title",
     text_body="""
     Jedes Jahr erhalten alle Stufen, jeder Harst und Zug einen Beitrag aus der Korpskasse, um Anschaffungen
          von Material und andere Ausgaben zu finanzieren. Ihr Sohn ist während den Übungen und Lagern, sowie bei
@@ -23,7 +23,7 @@ drawing = generate.bill(
          haben, so bitten wir Sie höflich, dies dem Korpskassier (Adresse siehe oben) schriftlich oder per Email
          mitzuteilen.
     """,
-    account='CH4431999123000889012',
+    account='CH4031000039529071000',
     creditor={
         'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
     },
