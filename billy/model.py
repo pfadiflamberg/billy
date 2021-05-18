@@ -96,7 +96,7 @@ class BulkInvoice(Base):
     # Functions for interacting with the BulkInvoice
     def issue(self):
         # TODO: add functionality
-        self.issuing_date= datetime.datetime.utcnow()
+        self.issuing_date = datetime.datetime.utcnow()
         self.due_date = self.issuing_date + datetime.timedelta(days=30)
         self.status = 'issued'
 
