@@ -1,50 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>billy</title>
     <style>
-    body {
-      margin: 0px;
-    }
-    .bill {
-      position: absolute;
-    }
-    .logo {
-      position: absolute;
-      left: 350pt;
-      top: 20px;
-    }
-    .text {
-      position: absolute;
-      left: 20pt;
-      top: 100pt;
-      width: 400pt;
-      font-size: 12px;
-      font-family: sans-serif;
-      text-align: justify;
-    }
+      body {
+        margin: 0px;
+        font-family: sans-serif;
+      }
+      .bill {
+        position: absolute;
+      }
+      .header {
+        position: absolute;
+        font-size: 9px;
+        left: 20pt;
+        top: 20pt;
+        width: 400pt;
+      }
+      .logo {
+        position: absolute;
+        left: 350pt;
+        top: 20px;
+      }
+      .window {
+        position: absolute;
+        left: 250pt;
+        top: 120pt;
+      }
+      .sender {
+        font-size: 8px;
+      }
+      .recipient {
+        font-size: 10px;
+      }
+      .info {
+        position: absolute;
+        left: 20pt;
+        top: 50pt;
+        font-size: 10px;
+        line-height: 2;
+      }
+      .text {
+        position: absolute;
+        left: 20pt;
+        top: 180pt;
+        width: 400pt;
+        font-size: 10px;
+        text-align: justify;
+        line-height: 1.2;
+      }
     </style>
-</head>
-<body>
-  <div class="bill">
-    <img
-      src='../../bill.svg'
-      width='595pt'
-      >
-  </div>
-  <div class="logo">
-    <img src="../images/logo.png" alt="logo" style="width:80pt;">
-  </div>
-  <!-- TODO: PLACE, DATE_ISSUED -->
-  <!-- TODO: DUE DATE -->
-  <!-- RECIPIENT -->
-  <div class="text">
-    Totam dolorem omnis quo veritatis vero. Aut veritatis dicta dolores minus debitis. Itaque voluptate praesentium voluptate natus cumque. Voluptatem nesciunt dolore nemo accusamus ut. Facere sunt magni nam aspernatur asperiores non.
-Enim non cupiditate vel dolorum et culpa aut. Dolorum deleniti qui sit quia. Dolor totam harum iure cupiditate recusandae delectus cupiditate sed. Quia sapiente assumenda quas cum. Sit magni omnis libero nemo dolores.
-Atque commodi laudantium in nemo. Nobis at magnam ullam rem molestiae harum molestias. Id ullam et sed. Accusantium ullam tempore est.
-Porro aut ipsa sint. Enim repellendus voluptas quos illo. Magni porro nisi et molestias est quia voluptates facere. Corrupti inventore at explicabo hic. Modi magnam sint ab a.
-Officia ea vero beatae earum rem qui. Eius et ullam sit aut. Sapiente sunt culpa omnis. Delectus similique totam placeat fugit incidunt voluptas debitis quos. Expedita rerum dolores et quia ex. Eum laudantium quisquam quis sit itaque quod.
-  </div>
-</body>
+  </head>
+  <body>
+    <div class="bill">
+      <img src="../../bill.svg" width="595pt" />
+    </div>
+    <div class="header">{{ header }}</div>
+    <div class="logo">
+      <img
+        src="../../resources/images/logo.png"
+        alt="logo"
+        style="width: 80pt"
+      />
+    </div>
+    <div class="info">{{ info }}</div>
+    <div class="window">
+      <div class="sender">{{ sender_address }}</div>
+      <img
+        src="../../resources/images/pp.png"
+        alt="logo"
+        style="width: 150pt"
+      />
+      <div class="recipient" style="margin-top: -24pt">
+        {{ recipient_address }}
+      </div>
+    </div>
+    <div class="text">
+      <div style="font-size: 14px; font-weight: bold">{{ title }}</div>
+      {{ text }}
+    </div>
+  </body>
 </html>
