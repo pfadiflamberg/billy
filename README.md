@@ -13,7 +13,7 @@ HITOBITO_SERVER=https://db.scout.ch
 HITOBITO_LANG=de -- one of: de, fr, it
 HITOBITO_SENDER=1234
 ```
-`HITOBITO_SENDER` is the personal number of the person who will be the sender of the invoice, usually the treasurer. 
+`HITOBITO_SENDER` is the personal number of the person who will be the sender of the invoice, and is only used for testing if not provided by the authentication.
 
 You can generate or lookup your toke using `curl`:
 
@@ -63,25 +63,6 @@ Run: `docker-compose up`
 ```
 
 ## Requets
-
-### Administration
-
-#### Upgrade Database
-
-```
-POST /upgrade-db
-```
-
-Updates the Database Schema to its newest version. Run this to set up the database and enable all other requests.
-
-#### Downgrade Database
-
-```
-POST /downgrade-db
-```
-
-Downgrades the database to its base state (no tables). **This will delete all data irrecoverably**.
-
 
 ### Bulk Invoice
 

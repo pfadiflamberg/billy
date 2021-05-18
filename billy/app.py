@@ -79,6 +79,11 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
 
+@app.before_first_request
+def upgradeDB(version="head"):
+    db.upgradeDatabase(version)
+
+""" Currently unused routes
 @app.route('/upgrade-db', methods=['POST'])
 @app.route('/upgrade-db/<version>', methods=['POST'])
 def upgradeDB(version="head"):
@@ -89,7 +94,7 @@ def upgradeDB(version="head"):
 @app.route('/downgrade-db/<version>', methods=['POST'])
 def downgradeDB(version="base"):
     db.downgradeDatabase(version)
-    return "downgraded"
+    return "downgraded" """
 
 
 @app.route('/bulk', methods=['POST'])
