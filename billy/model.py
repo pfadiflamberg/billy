@@ -13,15 +13,20 @@ from flask_mail import Message
 
 from dotenv import load_dotenv
 
-load_dotenv('./env/mail.env')
 
-mailDefaultSender = os.getenv("MAIL_DEFAULT_SENDER")
+
+
 
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 from dotenv import load_dotenv
+load_dotenv('./env/mail.env')
+mailDefaultSender = os.getenv("MAIL_DEFAULT_SENDER")
+load_dotenv('./env/hitobito.env')
+sender = os.getenv("HITOBITO_SENDER")
+
 load_dotenv('./env/bank.env')
 prefix = os.getenv('BANK_REF_PREFIX')
 REF_NUM_LENGTH=27
@@ -99,13 +104,18 @@ class BulkInvoice(Base):
         # TODO: add functionality
         self.status = 'closed'
 
-    def get_messages(self):
-        print(self.invoices)
-        return [invoice.get_message() for invoice in self.invoices]
+    def get_messages(self, generator=False):
+        if generator:
+            return (invoice.get_message() for invoice in self.invoices)
+        else: 
+            return [invoice.get_message() for invoice in self.invoices]
     
-    def generate(self):
-        # TODO: add functionality
-        return [invoice.generate() for invoice in self.invoices]
+    def generate(self, generator=False):
+        if generator:
+            return (invoice.generate() for invoice in self.invoices)
+        else: 
+            return [invoice.generate() for invoice in self.invoices]
+
 
     def __repr__(self):
         return "<BulkInvoice(id=%s, title=%s,status=%s, issuing_date=%s, due_date=%s, len(invoices)=%s, create_time=%s, update_time=%s, text_invoice=%s(...), text_reminder=%s(...))>" % (
@@ -178,16 +188,14 @@ class Invoice(Base):
 
         string = generate.bill(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
         'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
-        }, ref=self.esr, amount = None, hitobito_debtor= hitobito.getPerson(self.recipient), hitobito_sender= hitobito.getPerson(43867))
+        }, ref=self.esr, amount = None, hitobito_debtor= hitobito.getPerson(self.recipient), hitobito_sender= hitobito.getPerson(sender))
         
         return string
 
     def get_message(self):
 
         msg = Message("Subject", bcc=[mailDefaultSender])
-        """ Only uncomment if  you actually want to send mails to people!
         msg.add_recipient(hitobito.getPerson(self.recipient)['emails'][0])
-        """
          
         msg.body = self.mail_body
         msg.attach("Rechnung.pdf", "application/pdf", self.generate())

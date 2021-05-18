@@ -5,13 +5,16 @@ import db
 
 from loguru import logger
 
-from flask import Flask, request, jsonify, make_response
+import zipfile
+import io
+
+from flask import Flask, request, jsonify, make_response, send_file
 from flask_marshmallow import Marshmallow
 from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 
-from flask_mail import Mail, Message
+from flask_mail import Mail, Message, email_dispatched
 # init
 app = Flask(__name__)
 
@@ -25,8 +28,6 @@ mailUseSSL = bool(int(os.getenv('MAIL_USE_SSL')))
 mailUsername = os.getenv('MAIL_USERNAME')
 mailDefaultSender = os.getenv('MAIL_DEFAULT_SENDER')
 mailPassword = os.getenv('MAIL_PASSWORD')
-# for testing
-mailTestRecipient = os.getenv('MAIL_TEST_RECIPIENT')
 
 app.config['MAIL_SERVER'] = mailServer
 app.config['MAIL_PORT'] = mailPort
@@ -35,8 +36,17 @@ app.config['MAIL_USE_SSL'] = mailUseSSL
 app.config['MAIL_USERNAME'] = mailUsername
 app.config['MAIL_DEFAULT_SENDER'] = mailDefaultSender
 app.config['MAIL_PASSWORD'] = mailPassword
+app.config['MAIL_DEBUG'] = True
+# Must be true unless you actually want to send emails
+app.config['MAIL_SUPPRESS_SEND'] = True
 
 mail = Mail(app)
+
+def log_message(message, app):
+    logger.info("Sent to: {recipient} with CC: {cc} and BCC: {bcc}", recipient=message.recipients, cc=message.cc, bcc=message.bcc)
+
+email_dispatched.connect(log_message)
+
 ma = Marshmallow(app)
 
 
@@ -68,6 +78,18 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 # Create the Schemas for BulkInvoices and lists of them
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
+
+@app.route('/upgrade-db', methods=['POST'])
+@app.route('/upgrade-db/<version>', methods=['POST'])
+def upgradeDB(version="head"):
+    db.upgradeDatabase(version)
+    return "upgraded"
+
+@app.route('/downgrade-db', methods=['POST'])
+@app.route('/downgrade-db/<version>', methods=['POST'])
+def downgradeDB(version="base"):
+    db.downgradeDatabase(version)
+    return "downgraded"
 
 
 @app.route('/bulk', methods=['POST'])
@@ -166,7 +188,7 @@ def sendBulkInvoice(id):
 
     bi = db.getBulkInvoice(session, id)
     
-    for msg in bi.get_messages():
+    for msg in bi.get_messages(True):
         mail.send(msg)
 
     res = jsonify(bulkInvoiceSchema.dump(bi))
@@ -177,14 +199,25 @@ def sendBulkInvoice(id):
 
 @app.route('/bulk/<id>:generate', methods=['POST'])
 def generateBulkInvoice(id):
-    # TODO: Add functionality
     session = db.loadSession()
 
     bi = db.getBulkInvoice(session, id)
-    bi.generate()
+
+    data = io.BytesIO()
+    with zipfile.ZipFile(data, mode='w') as z:
+        for invoice in bi.invoices:
+            name = invoice.recipient_name + ".pdf"
+            pdf = invoice.generate()
+            z.writestr(name, pdf)
+    data.seek(0)
 
     session.close()
-    return "bulk_link"
+    return send_file(
+        data,
+        mimetype='application/zip',
+        as_attachment=True,
+        attachment_filename='data.zip'
+    )
 
 
 @app.route('/bulk/<bulk_id>/invoices/<id>', methods=['GET'])
@@ -241,7 +274,6 @@ def generateInvoice(bulk_id, id):
     return response
 
 
-#currently sends a mail to the "mailTestRecipient"
 @app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['POST'])
 def getMailBody(bulk_id, id):
     session = db.loadSession()
