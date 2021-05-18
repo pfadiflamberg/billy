@@ -3,7 +3,7 @@ import os
 import pdfkit
 import locale
 
-locale.setlocale(locale.LC_TIME, "de_ch")  # TODO: this should be in app.py or something
+locale.setlocale(locale.LC_TIME, "de_CH.UTF-8")  # TODO: this should be in app.py or something
 
 TMP_SVG_FILE = 'bill.svg'
 INVOICE_TEMPLATE = 'resources/html/invoice.html'

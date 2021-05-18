@@ -186,9 +186,9 @@ class Invoice(Base):
 
     def generate(self):
 
-        string = generate.bill(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
+        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
         'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
-        }, ref=self.esr, amount = None, hitobito_debtor= hitobito.getPerson(self.recipient), hitobito_sender= hitobito.getPerson(sender))
+        }, ref=self.esr, hitobito_debtor= hitobito.getPerson(self.recipient), hitobito_sender= hitobito.getPerson(sender), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
         
         return string
 

@@ -14,7 +14,7 @@ name = os.getenv('MYSQL_DB')
 
 engine_string = "mysql+mysqldb://%s:%s@%s:%s/%s" % (
     username, password, address, port, name)
-engine = create_engine(engine_string, echo=True)
+engine = create_engine(engine_string, echo=False)
 
 # Create a sessionmaker
 Session = sessionmaker(bind=engine)
