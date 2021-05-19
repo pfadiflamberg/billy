@@ -11,7 +11,9 @@ HITOBITO_EMAIL=pfnörch@flamberg.ch
 HITOBITO_TOKEN=*******************
 HITOBITO_SERVER=https://db.scout.ch
 HITOBITO_LANG=de -- one of: de, fr, it
+HITOBITO_SENDER=1234
 ```
+`HITOBITO_SENDER` is the personal number of the person who will be the sender of the invoice, and is only used for testing when not provided by auth token.
 
 You can generate or lookup your toke using `curl`:
 
@@ -31,11 +33,13 @@ MAIL_USE_SSL=1 --0 or 1
 MAIL_USERNAME=exampleaddress@examplemailserver.org
 MAIL_DEFAULT_SENDER=exampleaddress@examplemailserver.org
 MAIL_PASSWORD=***********
-
-MAIL_TEST_RECIPIENT=testrecipient@examplemailerver.org
 ```
+For the banking functionality, the enivronment variables need to be set, either via `.env/bank.env` or via docker-compose.yml:
 
-The last variable is only used during testing, when you don't want to send emails to real people.
+```txt
+BANK_IBAN=CH40...
+BANK_REF_PREFIX=123456
+```
 
 
 #### Run with Docker-Compose
@@ -43,6 +47,7 @@ The last variable is only used during testing, when you don't want to send email
 Run: `docker-compose up`
 
 ## Resources
+
 
 ### Bulk Invoice
 
@@ -136,7 +141,7 @@ This will send all pending invoices of this bulk via email.
 POST /bulk/<id>:generate
 ```
 
-This will generate all pending invoices as pdf and return a link to download them.
+This will generate all pending invoices as pdf and return a a zip file containing all of them.
 
 ### Invoice
 
@@ -181,7 +186,7 @@ This will return a list of invoice resources that are associated with a bulk:
 POST /bulk/<id>/invocies/<id>:generate
 ```
 
-This will generate the invoices as pdf and return a link to download it.
+This will generate the invoices as pdf and return it.
 
 #### TODO:
 - [ ] Create Frontend

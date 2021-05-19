@@ -68,11 +68,14 @@ def getGroupPeopleIDs(group_id):
 
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
-    logger.info(response)
+    #logger.debug(response)
     p = getHitobitoPerson(response)
     person = {
         'id': p['id'],
         'salutation': getSalutation(p),
+        'name': getName(p),
+        'nickname': getNickname(p),
+        'shortname': getShortname(p),
         'role': getRole(p),
         'addr': getAddress(p),
         'emails': getEmails(p),
@@ -80,15 +83,32 @@ def getPerson(person_id):
     return person
 
 
+def getShortname(hitobitoPerson):
+    nickname = getNickname(hitobitoPerson)
+    if nickname:
+        return nickname
+    return hitobitoPerson['first_name']
+
+def getName(hitobitoPerson):
+    return '{firstName} {lastName}'.format(
+        firstName=hitobitoPerson['first_name'],
+        lastName=hitobitoPerson['last_name'])
+
+
+def getNickname(hitobitoPerson):
+    nickname = hitobitoPerson['nickname']
+    if 0 == len(nickname):
+        return None
+    return '{nickname}'.format(
+        nickname=hitobitoPerson['nickname'])
+
+
 def getAddress(hitobitoPerson):
-    return '\n'.join([
-        '{firstName} {lastName} / {nickname}'.format(
-            firstName=hitobitoPerson['first_name'], lastName=hitobitoPerson['last_name'], nickname=hitobitoPerson['nickname']),
-        '{street}'.format(
-            street=hitobitoPerson['address']),
-        '{zip} {town}'.format(
-            zip=hitobitoPerson['zip_code'], town=hitobitoPerson['town'])
-    ])
+    return {
+        'street': hitobitoPerson['address'],
+        'zip': hitobitoPerson['zip_code'],
+        'town': hitobitoPerson['town'],
+    }
 
 
 def getHitobitoPerson(raw):
