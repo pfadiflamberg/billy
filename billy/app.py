@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import os
 
 from model import Invoice, BulkInvoice
@@ -18,7 +19,6 @@ from flask_mail import Mail, Message, email_dispatched
 # init
 app = Flask(__name__)
 
-from dotenv import load_dotenv
 load_dotenv('./env/mail.env')
 
 mailServer = os.getenv('MAIL_SERVER')
@@ -42,19 +42,20 @@ app.config['MAIL_SUPPRESS_SEND'] = True
 
 mail = Mail(app)
 
+
 def log_message(message, app):
-    logger.info("Sent to: {recipient} with CC: {cc} and BCC: {bcc}", recipient=message.recipients, cc=message.cc, bcc=message.bcc)
+    logger.info("Sent to: {recipient} with CC: {cc} and BCC: {bcc}",
+                recipient=message.recipients, cc=message.cc, bcc=message.bcc)
+
 
 email_dispatched.connect(log_message)
 
 ma = Marshmallow(app)
 
 
-
 class InvoiceSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Invoice
-
 
 
 # Create the Schemas for Invoices and lists of them
@@ -79,22 +80,10 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
 
+
 @app.before_first_request
 def upgradeDB(version="head"):
     db.upgradeDatabase(version)
-
-""" Currently unused routes
-@app.route('/upgrade-db', methods=['POST'])
-@app.route('/upgrade-db/<version>', methods=['POST'])
-def upgradeDB(version="head"):
-    db.upgradeDatabase(version)
-    return "upgraded"
-
-@app.route('/downgrade-db', methods=['POST'])
-@app.route('/downgrade-db/<version>', methods=['POST'])
-def downgradeDB(version="base"):
-    db.downgradeDatabase(version)
-    return "downgraded" """
 
 
 @app.route('/bulk', methods=['POST'])
@@ -192,7 +181,7 @@ def sendBulkInvoice(id):
     session = db.loadSession()
 
     bi = db.getBulkInvoice(session, id)
-    
+
     for msg in bi.get_messages(True):
         mail.send(msg)
 
@@ -244,17 +233,18 @@ def getInvoices(id):
     session.close()
     return res
 
+
 @app.route('/bulk/<bulk_id>/invoices/<id>', methods=['PUT'])
 def updateInvoice(bulk_id, id):
     session = db.loadSession()
 
     # Get Invoice
     invoice = db.getInvoice(session, id)
-    
+
     # Get json paramsk
     status = request.json.get('status', invoice.status)
     status_message = request.json.get('status_message', invoice.status_message)
-    
+
     invoice.status = status
     invoice.status_message = status_message
 
@@ -262,6 +252,7 @@ def updateInvoice(bulk_id, id):
     session.commit()
     session.close()
     return res
+
 
 @app.route('/bulk/<bulk_id>/invoices/<id>:generate', methods=['POST'])
 def generateInvoice(bulk_id, id):
@@ -274,7 +265,7 @@ def generateInvoice(bulk_id, id):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = \
         'inline; filename=%s.pdf' % 'invoice'
-        
+
     session.close()
     return response
 
@@ -289,6 +280,7 @@ def getMailBody(bulk_id, id):
     session.close()
 
     return "sent"
+
 
 if __name__ == '__main__':
     app.run(debug=False, host="0.0.0.0")

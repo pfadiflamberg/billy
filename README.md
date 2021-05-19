@@ -13,7 +13,7 @@ HITOBITO_SERVER=https://db.scout.ch
 HITOBITO_LANG=de -- one of: de, fr, it
 HITOBITO_SENDER=1234
 ```
-`HITOBITO_SENDER` is the personal number of the person who will be the sender of the invoice, and is only used for testing if not provided by the authentication.
+`HITOBITO_SENDER` is the personal number of the person who will be the sender of the invoice, and is only used for testing when not provided by auth token.
 
 You can generate or lookup your toke using `curl`:
 
