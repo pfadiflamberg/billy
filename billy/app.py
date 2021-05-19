@@ -15,9 +15,12 @@ from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 
-from flask_mail import Mail, Message, email_dispatched
+from flask_mail import Mail, email_dispatched
+from flask_cors import CORS
+
 # init
 app = Flask(__name__)
+CORS(app)
 
 load_dotenv('./env/mail.env')
 
