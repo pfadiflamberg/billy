@@ -1,9 +1,11 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import backendReducer from '../features/backend/backendSlice';
+import errorReducer from '../features/error/errorSlice';
 
 export const store = configureStore({
   reducer: {
     backend: backendReducer,
+    error: errorReducer,
   },
 });
 

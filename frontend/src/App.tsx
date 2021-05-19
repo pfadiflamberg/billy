@@ -4,6 +4,7 @@ import './App.css';
 import {useAppDispatch} from "./app/hooks";
 import {selfConfigure} from "./features/backend/backendSlice";
 import {BulkInvoiceList} from "./pages/BulkInvoiceList";
+import {ErrorView} from "./features/error/errorView";
 
 function App() {
 
@@ -13,6 +14,7 @@ function App() {
 
   return (
     <div className="App">
+      <ErrorView />
       <BulkInvoiceList />
     </div>
   );
