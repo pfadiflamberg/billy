@@ -9,17 +9,31 @@ import datetime
 import stdnum.ch.esr as stdnum_esr
 
 from flask import render_template_string
+from flask_mail import Message
+
+from dotenv import load_dotenv
+
+
+
+
+
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 from dotenv import load_dotenv
+load_dotenv('./env/mail.env')
+mailDefaultSender = os.getenv("MAIL_DEFAULT_SENDER")
+load_dotenv('./env/hitobito.env')
+sender = os.getenv("HITOBITO_SENDER")
+
 load_dotenv('./env/bank.env')
 prefix = os.getenv('BANK_REF_PREFIX')
 REF_NUM_LENGTH=27
 
 try:
     import hitobito
+    import generate
 except ImportError:
     pass
 
@@ -90,14 +104,18 @@ class BulkInvoice(Base):
         # TODO: add functionality
         self.status = 'closed'
 
-    def send(self):
-        # TODO: add functionality
-        pass
+    def get_messages(self, generator=False):
+        if generator:
+            return (invoice.get_message() for invoice in self.invoices)
+        else: 
+            return [invoice.get_message() for invoice in self.invoices]
     
-    def generate(self):
-        # TODO: add functionality
-        for invoice in self.invoices:
-            invoice.generate()
+    def generate(self, generator=False):
+        if generator:
+            return (invoice.generate() for invoice in self.invoices)
+        else: 
+            return [invoice.generate() for invoice in self.invoices]
+
 
     def __repr__(self):
         return "<BulkInvoice(id=%s, title=%s,status=%s, issuing_date=%s, due_date=%s, len(invoices)=%s, create_time=%s, update_time=%s, text_invoice=%s(...), text_reminder=%s(...))>" % (
@@ -151,14 +169,37 @@ class Invoice(Base):
 
     @hybrid_property
     def mail_body(self):
-        return render_template_string(self.bulk_invoice.text_mail, salutation = hitobito.getPerson(self.recipient)['salutation']) + "\n \n REF: " + self.esr
+        return render_template_string(self.bulk_invoice.text_mail, salutation = hitobito.getPerson(self.recipient)['salutation'])
+
+    @hybrid_property
+    def invoice_body(self):
+        return render_template_string(self.bulk_invoice.text_invoice, salutation = hitobito.getPerson(self.recipient)['salutation'])
+
+    @hybrid_property
+    def reminder_body(self):
+        return render_template_string(self.bulk_invoice.text_reminder, salutation = hitobito.getPerson(self.recipient)['salutation'])
+
+
 
     # Define the relationship between the Invoice and its BulkInvoice
     bulk_invoice = relationship("BulkInvoice", back_populates="invoices")
 
     def generate(self):
-        # TODO: add functionality
-        pass
+
+        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
+        'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
+        }, ref=self.esr, hitobito_debtor= hitobito.getPerson(self.recipient), hitobito_sender= hitobito.getPerson(sender), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
+        
+        return string
+
+    def get_message(self):
+
+        msg = Message("Subject", bcc=[mailDefaultSender])
+        msg.add_recipient(hitobito.getPerson(self.recipient)['emails'][0])
+         
+        msg.body = self.mail_body
+        msg.attach("Rechnung.pdf", "application/pdf", self.generate())
+        return msg
 
     def __repr__(self):
         return "<Invoice(id=%s, status=%s, status_message=%s(...), recipient=%s, recipient_name=%s, bulk_invoice=%s, create_time=%s, update_time=%s)>" % (

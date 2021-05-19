@@ -68,7 +68,7 @@ def getGroupPeopleIDs(group_id):
 
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
-    logger.info(response)
+    #logger.debug(response)
     p = getHitobitoPerson(response)
     person = {
         'id': p['id'],
