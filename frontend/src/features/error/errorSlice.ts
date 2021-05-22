@@ -1,5 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import {RootState} from "../../app/store";
+import {AppThunk, RootState} from "../../app/store";
 
 interface ErrorState {
     errors: Error[];
@@ -22,7 +22,20 @@ export const errorSlice = createSlice({
     }
 })
 
-export const { addError } = errorSlice.actions;
+const { addError } = errorSlice.actions;
+
+export const handleError = (error: any): AppThunk => async (
+    dispatch
+) => {
+    if (error instanceof Error) {
+    } else if (typeof error === 'string' || error instanceof String) {
+        error = new Error(error.toString())
+    } else {
+        // unexpected error type
+        throw(error);
+    }
+    dispatch(addError(error));
+}
 
 export const selectErrors = (state: RootState) => state.error.errors;
 

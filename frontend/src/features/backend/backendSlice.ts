@@ -2,11 +2,11 @@ import { createSlice } from "@reduxjs/toolkit"
 import {RootState} from "../../app/store";
 
 export interface BackendState {
-    url: string;
+    base: string;
 }
 
 const initialState: BackendState = {
-    url: 'https://api.billy.flamberg.ch'
+    base: 'https://api.billy.flamberg.ch'
 }
 
 export const backendSlice = createSlice({
@@ -25,7 +25,7 @@ export const backendSlice = createSlice({
                   )
             );
             if (isLocalhost) {
-                state.url = 'http://localhost:5000'
+                state.base = 'http://localhost:5000'
             }
         }
     }
@@ -33,6 +33,6 @@ export const backendSlice = createSlice({
 
 export const { selfConfigure } = backendSlice.actions;
 
-export const selectBackendURL = (state: RootState) => state.backend.url;
+export const selectBackendBase = (state: RootState) => state.backend.base;
 
 export default backendSlice.reducer;

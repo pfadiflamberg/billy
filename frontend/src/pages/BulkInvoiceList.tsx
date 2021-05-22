@@ -1,17 +1,15 @@
-import React from 'react';
-import {useBackendAPI } from "../features/backend/backendAPI";
-import {handleError} from "../features/error/errorHandler";
+import React, {useEffect} from 'react';
 import {useAppDispatch} from "../app/hooks";
+import {fetchBulks} from "../features/bulk/bulkSlice";
 
 export function BulkInvoiceList() {
 
     const dispatch = useAppDispatch();
 
-    console.log(useBackendAPI('bulk'))
-
-    fetch(useBackendAPI('bulk'))
-        .then(result => console.log(result))
-        .catch(error => handleError(dispatch, error))
+    useEffect(() => {
+        console.log('load data')
+        dispatch(fetchBulks())
+    })
 
     return (
         <div className="BulkInvoiceList">
