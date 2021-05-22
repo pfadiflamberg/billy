@@ -14,11 +14,13 @@ export type BulkDict = {
 }
 
 export interface BulkState {
-    items: BulkDict; // TODO: maybe create bulk object
+    items: BulkDict;
+    showCreateBulkView: boolean;
 }
 
 const initialState: BulkState = {
-    items: {}
+    items: {},
+    showCreateBulkView: false,
 }
 
 export const bulkSlice = createSlice({
@@ -30,11 +32,14 @@ export const bulkSlice = createSlice({
             payload.forEach((r) => {
                 state.items[r.name] = r;
             })
+        },
+        createNewBulk: (state) => {
+            state.showCreateBulkView = true;
         }
     }
 })
 
-const { setBulks } = bulkSlice.actions;
+const { setBulks, createNewBulk } = bulkSlice.actions;
 
 export const fetchBulks = (): AppThunk => async (
     dispatch,
@@ -51,7 +56,7 @@ export const fetchBulks = (): AppThunk => async (
         .catch(e => handleError(e))
 }
 
-export const createBulk = (newBulk: Bulk): AppThunk => async (
+export const storeNewBulk = (newBulk: Bulk): AppThunk => async (
     dispatch,
     getState
 ) => {
@@ -59,5 +64,8 @@ export const createBulk = (newBulk: Bulk): AppThunk => async (
 }
 
 export const selectBulks = (state: RootState) => state.bulk.items;
+export const selectShowCreateBulkView = (state: RootState) => state.bulk.showCreateBulkView;
+
+export { createNewBulk };
 
 export default bulkSlice.reducer;

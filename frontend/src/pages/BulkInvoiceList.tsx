@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useAppDispatch} from "../app/hooks";
 import {fetchBulks} from "../features/bulk/bulkSlice";
+import {Card} from 'react-bootstrap';
 
 export function BulkInvoiceList() {
 
@@ -13,7 +14,7 @@ export function BulkInvoiceList() {
 
     return (
         <div className="BulkInvoiceList">
-            List
+            <Card />
         </div>
     )
 }
