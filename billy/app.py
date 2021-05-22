@@ -118,7 +118,7 @@ def getBulkInvoices():
     session = db.loadSession()
 
     # jsonify the dump of the list of invoices
-    res = jsonify(bulkInvoicesSchema.dump(db.getBulkInvoiceList(session)))
+    res = jsonify(items=bulkInvoicesSchema.dump(db.getBulkInvoiceList(session)))
     session.close()
     return res
 
@@ -229,7 +229,7 @@ def getInvoices(id):
     session = db.loadSession()
 
     # jsonify the dump of the list of invoices
-    res = jsonify(invoicesSchema.dump(db.getInvoiceList(session, id)))
+    res = jsonify(items=invoicesSchema.dump(db.getInvoiceList(session, id)))
     session.close()
     return res
 

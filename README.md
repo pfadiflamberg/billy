@@ -96,7 +96,7 @@ This will return a list of bulk invoice resources:
 
 ```json
 {
-  list: [
+  "items": [
     ...
   ]
 }
@@ -174,7 +174,7 @@ This will return a list of invoice resources that are associated with a bulk:
 
 ```json
 {
-  list: [
+  "items": [
     ...
   ]
 }
