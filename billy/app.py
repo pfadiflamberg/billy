@@ -94,10 +94,11 @@ def addBulkInvoice():
     session = db.loadSession()
 
     # Get the 'group' parameter
+    title = request.json['title']
     group = request.json['group']
 
     # Create add, and commit the new bulk invoice to get the id
-    newBI = BulkInvoice(group_id=group)
+    newBI = BulkInvoice(title=title, group_id=group)
     session.add(newBI)
     session.commit()
 
@@ -121,7 +122,8 @@ def getBulkInvoices():
     session = db.loadSession()
 
     # jsonify the dump of the list of invoices
-    res = jsonify(items=bulkInvoicesSchema.dump(db.getBulkInvoiceList(session)))
+    res = jsonify(items=bulkInvoicesSchema.dump(
+        db.getBulkInvoiceList(session)))
     session.close()
     return res
 
