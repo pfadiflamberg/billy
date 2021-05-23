@@ -33,13 +33,13 @@ export const bulkSlice = createSlice({
                 state.items[r.name] = r;
             })
         },
-        createNewBulk: (state) => {
-            state.showCreateBulkView = true;
-        }
+        showCreateBulkView: (state, { payload }: PayloadAction<boolean>) => {
+            state.showCreateBulkView = payload;
+        },
     }
 })
 
-const { setBulks, createNewBulk } = bulkSlice.actions;
+const { setBulks, showCreateBulkView } = bulkSlice.actions;
 
 export const fetchBulks = (): AppThunk => async (
     dispatch,
@@ -66,6 +66,6 @@ export const storeNewBulk = (newBulk: Bulk): AppThunk => async (
 export const selectBulks = (state: RootState) => state.bulk.items;
 export const selectShowCreateBulkView = (state: RootState) => state.bulk.showCreateBulkView;
 
-export { createNewBulk };
+export { showCreateBulkView };
 
 export default bulkSlice.reducer;

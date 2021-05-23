@@ -5,7 +5,7 @@ import {useAppDispatch} from "./app/hooks";
 import {selfConfigure} from "./features/backend/backendSlice";
 import {BulkInvoiceList} from "./pages/BulkInvoiceList";
 import {ErrorView} from "./features/error/errorView";
-import {createNewBulk} from "./features/bulk/bulkSlice";
+import {showCreateBulkView} from "./features/bulk/bulkSlice";
 import {Navbar, Nav, Button} from 'react-bootstrap';
 import {BulkCreateView} from "./features/bulk/bulkCreateView";
 
@@ -22,7 +22,7 @@ function App() {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
                 <Nav className="ml-auto">
-                    <Button onClick={e => dispatch(createNewBulk())} variant="outline-success">New Bulk</Button>
+                    <Button onClick={e => dispatch(showCreateBulkView(true))} variant="outline-primary">New Bulk</Button>
                 </Nav>
             </Navbar.Collapse>
         </Navbar>
