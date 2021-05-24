@@ -4,7 +4,6 @@ import requests
 
 from dotenv import load_dotenv
 from flask import Flask
-from http import HTTPStatus
 from loguru import logger
 from os.path import join, dirname
 from requests.adapters import HTTPAdapter
