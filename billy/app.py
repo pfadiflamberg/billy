@@ -10,7 +10,7 @@ import zipfile
 import io
 from requests import HTTPError, ConnectionError
 
-from flask import Flask, request, jsonify, make_response, send_file
+from flask import Flask, request, jsonify, make_response, send_file, g
 from flask_marshmallow import Marshmallow
 from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
@@ -115,7 +115,7 @@ def handle_key_error(e):
 @app.errorhandler(NotIssued)
 def handle_not_issued(e):
     # Request was ok, but conflicts with resource state -> Invalid Argument
-    return make_response(jsonify(code=409, reason="Invalid Argument: Invoice has not been issued yet", invoice_status=e.status), 409)
+    return make_response(jsonify(code=409, reason="Invalid Argument: Invoice has not been issued or already been closed", invoice_status=e.status), 409)
 
 @app.errorhandler(SMTPException)
 def handle_mail_error(e):
@@ -131,10 +131,22 @@ def handle_resource_not_found(e):
 def upgradeDB(version="head"):
     db.upgradeDatabase(version)
 
+@app.before_request
+def getSession():
+    g.session = db.loadSession()
+
+@app.teardown_request
+def closeSession(_):
+    try:
+        g.session.close()
+    except:
+        logger.log("Could not close session")
+
+
 
 @app.route('/bulk', methods=['POST'])
 def addBulkInvoice():
-    session = db.loadSession()
+    session = g.session
 
     # Get the 'group' parameter
     title = request.json['title']
@@ -146,34 +158,31 @@ def addBulkInvoice():
     session.commit()
 
     res = jsonify(bulkInvoiceSchema.dump(newBI))
-    session.close()
     return res
 
 
 @app.route('/bulk/<id>', methods=['GET'])
 def getBulkInvoice(id):
-    session = db.loadSession()
+    session = g.session
 
     # jsonify the dump of the bulk invoice
     res = jsonify(bulkInvoiceSchema.dump(db.getBulkInvoice(session, id)))
-    session.close()
     return res
 
 
 @app.route('/bulk/', methods=['GET'])
 def getBulkInvoices():
-    session = db.loadSession()
+    session = g.session
 
     # jsonify the dump of the list of invoices
     res = jsonify(items=bulkInvoicesSchema.dump(
         db.getBulkInvoiceList(session)))
-    session.close()
     return res
 
 
 @app.route('/bulk/<id>', methods=['PUT'])
 def updateBulkInvoice(id):
-    session = db.loadSession()
+    session = g.session
 
     # Get BulkInvoice
     bi = db.getBulkInvoice(session, id)
@@ -193,13 +202,12 @@ def updateBulkInvoice(id):
     # Dump the data, commit and close the session
     res = jsonify(bulkInvoiceSchema.dump(bi))
     session.commit()
-    session.close()
     return res
 
 
 @app.route('/bulk/<id>:issue', methods=['POST'])
 def issueBulkInvoice(id):
-    session = db.loadSession()
+    session = g.session
 
     bi = db.getBulkInvoice(session, id)
     if bi.status != 'issued':
@@ -207,26 +215,24 @@ def issueBulkInvoice(id):
 
     res = jsonify(bulkInvoiceSchema.dump(bi))
     session.commit()
-    session.close()
     return res
 
 
 @app.route('/bulk/<id>:close', methods=['POST'])
 def closeBulkInvoice(id):
-    session = db.loadSession()
+    session = g.session
 
     bi = db.getBulkInvoice(session, id)
     bi.close()
 
     res = jsonify(bulkInvoiceSchema.dump(bi))
     session.commit()
-    session.close()
     return res
 
 
 @app.route('/bulk/<id>:send', methods=['POST'])
 def sendBulkInvoice(id):
-    session = db.loadSession()
+    session = g.session
 
     bi = db.getBulkInvoice(session, id)
 
@@ -235,13 +241,12 @@ def sendBulkInvoice(id):
 
     res = jsonify(bulkInvoiceSchema.dump(bi))
     session.commit()
-    session.close()
     return res
 
 
 @app.route('/bulk/<id>:generate', methods=['POST'])
 def generateBulkInvoice(id):
-    session = db.loadSession()
+    session = g.session
 
     bi = db.getBulkInvoice(session, id)
 
@@ -253,7 +258,6 @@ def generateBulkInvoice(id):
             z.writestr(name, pdf)
     data.seek(0)
 
-    session.close()
     return send_file(
         data,
         mimetype='application/zip',
@@ -264,27 +268,25 @@ def generateBulkInvoice(id):
 
 @app.route('/bulk/<bulk_id>/invoices/<id>', methods=['GET'])
 def getInvoice(bulk_id, id):
-    session = db.loadSession()
+    session = g.session
 
     # jsonify the dump of the bulk invoice
     res = jsonify(invoiceSchema.dump(db.getInvoice(session, id)))
-    session.close()
     return res
 
 
 @app.route('/bulk/<id>/invoices', methods=['GET'])
 def getInvoices(id):
-    session = db.loadSession()
+    session = g.session
 
     # jsonify the dump of the list of invoices
     res = jsonify(items=invoicesSchema.dump(db.getInvoiceList(session, id)))
-    session.close()
     return res
 
 
 @app.route('/bulk/<bulk_id>/invoices/<id>', methods=['PUT'])
 def updateInvoice(bulk_id, id):
-    session = db.loadSession()
+    session = g.session
 
     # Get Invoice
     invoice = db.getInvoice(session, id)
@@ -298,13 +300,12 @@ def updateInvoice(bulk_id, id):
 
     res = jsonify(invoiceSchema.dump(invoice))
     session.commit()
-    session.close()
     return res
 
 
 @app.route('/bulk/<bulk_id>/invoices/<id>:generate', methods=['POST'])
 def generateInvoice(bulk_id, id):
-    session = db.loadSession()
+    session = g.session
 
     invoice = db.getInvoice(session, id)
 
@@ -314,20 +315,18 @@ def generateInvoice(bulk_id, id):
     response.headers['Content-Disposition'] = \
         'inline; filename=%s.pdf' % 'invoice'
 
-    session.close()
     return response
 
 
 @app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['POST'])
 def getMailBody(bulk_id, id):
-    session = db.loadSession()
+    session = g.session
 
     invoice = db.getInvoice(session, id)
     msg = invoice.get_message()
     mail.send(msg)
     res=jsonify(invoiceSchema.dump(invoice))
-    session.close()
-
+    
     return res
 
 
