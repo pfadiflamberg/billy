@@ -187,7 +187,9 @@ class Invoice(Base):
     bulk_invoice = relationship("BulkInvoice", back_populates="invoices")
 
     def generate(self):
-
+        if(self.bulk_invoice.status != 'issued'):
+            raise NotIssued(self.bulk_invoice.status)
+        
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
         }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getPerson(sender), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
@@ -206,3 +208,9 @@ class Invoice(Base):
     def __repr__(self):
         return "<Invoice(id=%s, status=%s, status_message=%s(...), recipient=%s, recipient_name=%s, bulk_invoice=%s, create_time=%s, update_time=%s)>" % (
             self.id, self.status, str(self.status_message)[0:5], self.recipient, self.recipient_name, self.bulk_invoice_id, self.create_time, self.update_time)
+
+
+# Exceptions
+class NotIssued(Exception):
+    def __init__(self, status):
+        self.status = status
