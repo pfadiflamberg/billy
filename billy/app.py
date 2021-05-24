@@ -1,13 +1,14 @@
 from dotenv import load_dotenv
 import os
 
-from model import Invoice, BulkInvoice
+from model import Invoice, BulkInvoice, NotIssued
 import db
 
 from loguru import logger
 
 import zipfile
 import io
+from requests import HTTPError, ConnectionError
 
 from flask import Flask, request, jsonify, make_response, send_file
 from flask_marshmallow import Marshmallow
@@ -16,6 +17,7 @@ from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 
 from flask_mail import Mail, email_dispatched
+from smtplib import SMTPException
 from flask_cors import CORS
 
 # init
@@ -83,6 +85,47 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
 
+@app.errorhandler(Exception)
+def handle_unhandled(e):
+    # Handle all others for now
+    return make_response(jsonify(code=500, reason=type(e).__name__), 500)
+
+@app.errorhandler(ConnectionError)
+def handle_connection_error(e):
+    return make_response(jsonify(code=500, reason="Internal Server Error: Could not connect to hitobito"), 500)
+
+@app.errorhandler(HTTPError)
+def handle_http_error(e):
+    # If 404: The group does not exist (hitobito-URL could also be invalid) -> 409 Invalid argument
+    # Else: Something with the HTTP response was wrong -> 500 or 502
+    """Return JSON instead of HTML for HTTP errors."""
+    logger.debug("request: {request}, response: {response}, data: {data}",
+                request=e.request.url, response=e.response, data=e.response.content)
+    if e.response.status_code == 404:
+        response=make_response(jsonify(code=409, reason="Invalid Argument: Group does not exist"), 409)
+    else:
+        response = make_response(jsonify(code=500, reason="Internal Server Error: Bad Answer to HTTP Request", http_reason=e.response.reason, http_code=e.response.status_code, url=e.request.url), 500)
+    return response
+
+@app.errorhandler(KeyError)
+def handle_key_error(e):
+    # Missing Parameter -> 409 to be like restify, 400 would make more sense
+    return make_response(jsonify(code=409, reason="Missing Parameter", missing_parameter=e.args[0]), 409)
+
+@app.errorhandler(NotIssued)
+def handle_not_issued(e):
+    # Request was ok, but conflicts with resource state -> Invalid Argument
+    return make_response(jsonify(code=409, reason="Invalid Argument: Invoice has not been issued yet", invoice_status=e.status), 409)
+
+@app.errorhandler(SMTPException)
+def handle_mail_error(e):
+    # Clients request was fine, but could not contact smtp/send mail -> 500
+    return make_response(jsonify(code=500, reason="Internal Server Error: SMTP", smtp_code=e.smtp_code, smtp_error=e.smtp_error.decode("utf-8")), 500)
+
+@app.errorhandler(db.ResourceNotFound)
+def handle_resource_not_found(e):
+    # Resource not in database -> 404
+    return make_response(jsonify(code=404, reason="Not Found"), 404)
 
 @app.before_first_request
 def upgradeDB(version="head"):
@@ -282,9 +325,10 @@ def getMailBody(bulk_id, id):
     invoice = db.getInvoice(session, id)
     msg = invoice.get_message()
     mail.send(msg)
+    res=jsonify(invoiceSchema.dump(invoice))
     session.close()
 
-    return "sent"
+    return res
 
 
 if __name__ == '__main__':

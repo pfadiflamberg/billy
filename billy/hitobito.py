@@ -27,15 +27,13 @@ session = requests.Session()
 session.mount(hitobitoServer, HTTPAdapter(max_retries=5))
 session.headers.update(headers)
 
+# TODO: check if url points to hitobito-server, otherwise throw some exception
 
 def hitobito(request):
     assert(not request.startswith('/'))
     url = os.path.join(hitobitoServer, hitobitoLang, request) + '.json'
     response = session.get(url=url)
-    if not response.status_code == HTTPStatus.OK:
-        logger.debug("request: {request}, response: {response}, data: {data}",
-                     request=url, response=response, data=response.json())
-        raise Exception('Failed to access resource.')
+    response.raise_for_status()
     return response.json()
 
 
