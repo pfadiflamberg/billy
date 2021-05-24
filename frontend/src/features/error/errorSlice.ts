@@ -37,6 +37,15 @@ export const handleError = (error: any): AppThunk => async (
     dispatch(addError(error));
 }
 
+export const catchErrors = (response: any): AppThunk => async (
+    dispatch
+) => {
+    console.log('TODO: catch errors');
+    console.log(response);
+    console.log(response.status);
+}
+
+
 export const selectErrors = (state: RootState) => state.error.errors;
 
 export default errorSlice.reducer;

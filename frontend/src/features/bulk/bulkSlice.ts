@@ -47,13 +47,14 @@ export const fetchBulks = (): AppThunk => async (
 ) => {
     fetch([selectBackendBase(getState()), API_PATH_BULK].join('/'))
         .then(response => {
-            console.log(response)
-            console.log(response.json())
-            console.log('todo: add to store')
+            // catchErrors(r);
+            console.log(response);
+            console.log(response.json());
+            console.log('todo: add to store');
             // let bulks: Bulk[];
             // setBulks(bulks);
         })
-        .catch(e => handleError(e))
+        .catch(e => dispatch(handleError(e)))
 }
 
 export const storeNewBulk = (newBulk: Bulk): AppThunk => async (
