@@ -22,7 +22,7 @@ export const errorSlice = createSlice({
     }
 })
 
-const { addError } = errorSlice.actions;
+const { addError, clearErrors } = errorSlice.actions;
 
 export const handleError = (error: any): AppThunk => async (
     dispatch
@@ -37,14 +37,7 @@ export const handleError = (error: any): AppThunk => async (
     dispatch(addError(error));
 }
 
-export const catchErrors = (response: any): AppThunk => async (
-    dispatch
-) => {
-    console.log('TODO: catch errors');
-    console.log(response);
-    console.log(response.status);
-}
-
+export { clearErrors };
 
 export const selectErrors = (state: RootState) => state.error.errors;
 

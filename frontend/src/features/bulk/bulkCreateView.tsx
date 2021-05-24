@@ -4,7 +4,8 @@ import {Button, Form, Modal} from 'react-bootstrap';
 import {selectShowCreateBulkView} from "./bulkSlice";
 import {showCreateBulkView} from "./bulkSlice";
 import {selectBackendBase} from "../backend/backendSlice";
-import {catchErrors, handleError} from "../error/errorSlice";
+import {handleError} from "../error/errorSlice";
+import {request} from "../../app/request";
 
 export function BulkCreateView() {
 
@@ -17,18 +18,11 @@ export function BulkCreateView() {
 
     const handleCreate = () => {
         console.log(JSON.stringify(formData));
-        fetch([BACKEND_BASE, 'bulk'].join('/'), {
-            method: 'POST',
-            headers: {
-                'Accept': '*/*',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData),
-        })
-            .then(r => {
-                dispatch(catchErrors(r));
-            })
-            .catch(e => dispatch(handleError(e)))
+        let response = request(new URL('bulk', BACKEND_BASE),
+            'POST',
+            formData)
+            .catch(e => dispatch(handleError(e))); // TODO: needs different error here
+        console.log(response);
     }
 
     const handleClose = () => {
