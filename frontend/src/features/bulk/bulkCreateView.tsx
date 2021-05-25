@@ -17,12 +17,15 @@ export function BulkCreateView() {
     let formData: { [key: string]: string } = {};
 
     const handleCreate = () => {
-        console.log(JSON.stringify(formData));
-        let response = request(new URL('bulk', BACKEND_BASE),
+        request(new URL('bulk', BACKEND_BASE),
             'POST',
             formData)
+            .then(r => {
+                console.log('got response');
+                console.log(r);
+            })
             .catch(e => dispatch(handleError(e))); // TODO: needs different error here
-        console.log(response);
+
     }
 
     const handleClose = () => {

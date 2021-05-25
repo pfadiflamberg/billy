@@ -27,7 +27,7 @@ function App() {
             </Navbar.Collapse>
         </Navbar>
       <ErrorView />
-      {/*<BulkInvoiceList />*/}
+      <BulkInvoiceList />
       <BulkCreateView />
     </div>
   );
