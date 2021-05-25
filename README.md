@@ -76,7 +76,9 @@ Create a new bulk invoice.
 
 | Name  | Description | Example | Required |
 |-------|-------------|---------|----------|
-| group | The group (and its children) that are added as recipients. |         | yes |
+| group | The group that contains the mailing list. |         | yes |
+| mailing_list | The mailing list whose subscribers are added as recipients. |         | yes |
+| title | A title for the bulk invoice. |         | yes |
 
 #### Get
 
