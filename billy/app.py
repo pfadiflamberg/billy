@@ -151,11 +151,9 @@ def addBulkInvoice():
 
     # Get the 'group' parameter
     title = request.json['title']
-    group = request.json['group']
-    mailing_list = request.json['mailing_list']
 
     # Create add, and commit the new bulk invoice to get the id
-    newBI = BulkInvoice(title=title, group_id=group, mailing_list_id=mailing_list)
+    newBI = BulkInvoice(title=title)
     session.add(newBI)
     session.commit()
 
@@ -211,9 +209,12 @@ def updateBulkInvoice(id):
 def issueBulkInvoice(id):
     session = g.session
 
+    group = request.json['group']
+    mailing_list = request.json['mailing_list']
+
     bi = db.getBulkInvoice(session, id)
     if bi.status != 'issued':
-        bi.issue()
+        bi.issue(group, mailing_list)
 
     res = jsonify(bulkInvoiceSchema.dump(bi))
     session.commit()
