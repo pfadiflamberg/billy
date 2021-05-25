@@ -62,7 +62,10 @@ def getInvoice(session, id):
 
 
 def getInvoiceList(session, id):
-    return session.query(BulkInvoice).get(id).invoices
+    l = session.query(BulkInvoice).get(id).invoices
+    if l is None:
+        raise ResourceNotFound()
+    return l
 
 # Exceptions
 class ResourceNotFound(Exception):
