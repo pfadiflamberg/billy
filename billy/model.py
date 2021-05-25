@@ -65,7 +65,7 @@ class BulkInvoice(Base):
     def name(cls):
         return sa.func.concat("bulk/", cls.id)
 
-    def __init__(self, title, group_id, status='created', due_date=None, text_mail="{{ salutation }}, \n Dies ist eine Testmail\n Grüsse Pfnörch", text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch", text_reminder="Reminder Text"):
+    def __init__(self, title, group_id, mailing_list_id, status='created', due_date=None, text_mail="{{ salutation }}, \n Dies ist eine Testmail\n Grüsse Pfnörch", text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch", text_reminder="Reminder Text"):
         self.title = title
         self.status = status
         self.due_date = due_date
@@ -76,13 +76,10 @@ class BulkInvoice(Base):
         self.create_time = datetime.datetime.utcnow()
         self.update_time = self.create_time
 
-        groupIDs = hitobito.getGroups(group_id)
-        peopleIDs = []
-        for gid in groupIDs:
-            peopleIDs = peopleIDs + hitobito.getGroupPeopleIDs(gid)
-        peopleIDs = list(set(peopleIDs))
+        people = hitobito.getMailingListNameIDs(group_id=group_id, mailing_list_id=mailing_list_id)
+
         self.invoices = [Invoice(recipient, self.create_time.strftime(
-            "%Y%m%d")) for recipient in peopleIDs]
+            "%Y%m%d")) for recipient in people]
 
     # Create a property for the display name
 
@@ -145,21 +142,17 @@ class Invoice(Base):
         sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
 
     def __init__(self, recipient, datestring, status='pending', status_message="Status Message"):
-        self.recipient = recipient
+        self.recipient = recipient['id']
+        self.recipient_name = recipient['name']
+
         self.status = status
         self.status_message = status_message
         # generate reference number
-        end = str(recipient) + "000" + datestring
+        end = str(self.recipient) + "000" + datestring
         no_check_digit = prefix + \
             ("0"*(REF_NUM_LENGTH-len(prefix)-len(end)-1)) + end
         self.esr = no_check_digit + stdnum_esr.calc_check_digit(no_check_digit)
 
-        # TODO: This is very slow, name should be passed in the constructor
-        #hitobitoPerson = hitobito.getPerson(recipient)
-        #self.recipient_name = hitobitoPerson['address'].splitlines()[0]
-
-        # for development just use id as name
-        self.recipient_name = "Person " + str(recipient)
 
     # Define a property for the name with the relative address
     @hybrid_property
@@ -214,3 +207,4 @@ class Invoice(Base):
 class NotIssued(Exception):
     def __init__(self, status):
         self.status = status
+        

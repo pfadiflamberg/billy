@@ -39,7 +39,7 @@ def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_se
          ' '.join([hitobito_sender['addr']['zip'], hitobito_sender['addr']['town']])]))
     invoice = invoice.replace('{{ recipient_address }}', '<br>'.join([
         hitobito_debtor['name']
-        + ' / {nickname}'.format(nickname=hitobito_debtor['nickname']) if hitobito_debtor['nickname'] else '',
+        + (' / {nickname}'.format(nickname=hitobito_debtor['nickname']) if hitobito_debtor['nickname'] else ''),
         hitobito_debtor['addr']['street'],
         ' '.join([hitobito_debtor['addr']['zip'], hitobito_debtor['addr']['town']])
     ]))

@@ -86,7 +86,7 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
 
-@app.errorhandler(Exception)
+#@app.errorhandler(Exception)
 def handle_unhandled(e):
     # Handle all others for now
     return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase, details ={"name": type(e).__name__}), HTTPStatus.INTERNAL_SERVER_ERROR)
@@ -152,9 +152,10 @@ def addBulkInvoice():
     # Get the 'group' parameter
     title = request.json['title']
     group = request.json['group']
+    mailing_list = request.json['mailing_list']
 
     # Create add, and commit the new bulk invoice to get the id
-    newBI = BulkInvoice(title=title, group_id=group)
+    newBI = BulkInvoice(title=title, group_id=group, mailing_list_id=mailing_list)
     session.add(newBI)
     session.commit()
 

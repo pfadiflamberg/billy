@@ -35,4 +35,4 @@ services:
     container_name: billy-frontend
     build: frontend
     ports:
-      - "1921:8080"
+      - "1921:3000"
