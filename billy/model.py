@@ -65,7 +65,7 @@ class BulkInvoice(Base):
     def name(cls):
         return sa.func.concat("bulk/", cls.id)
 
-    def __init__(self, title, group_id, mailing_list_id, status='created', due_date=None, text_mail="{{ salutation }}, \n Dies ist eine Testmail\n Grüsse Pfnörch", text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch", text_reminder="Reminder Text"):
+    def __init__(self, title, status='created', due_date=None, text_mail="{{ salutation }}, \n Dies ist eine Testmail\n Grüsse Pfnörch", text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch", text_reminder="Reminder Text"):
         self.title = title
         self.status = status
         self.due_date = due_date
@@ -76,10 +76,6 @@ class BulkInvoice(Base):
         self.create_time = datetime.datetime.utcnow()
         self.update_time = self.create_time
 
-        people = hitobito.getMailingListNameIDs(group_id=group_id, mailing_list_id=mailing_list_id)
-
-        self.invoices = [Invoice(recipient, self.create_time.strftime(
-            "%Y%m%d")) for recipient in people]
 
     # Create a property for the display name
 
@@ -91,10 +87,15 @@ class BulkInvoice(Base):
     invoices = relationship("Invoice", back_populates="bulk_invoice")
 
     # Functions for interacting with the BulkInvoice
-    def issue(self):
+    def issue(self, group_id, mailing_list_id):
         # TODO: add functionality
+        people = hitobito.getMailingListNameIDs(group_id=group_id, mailing_list_id=mailing_list_id)
+        self.invoices = [Invoice(recipient, self.create_time.strftime(
+            "%Y%m%d"), self.id) for recipient in people]
+
         self.issuing_date = datetime.datetime.utcnow()
         self.due_date = self.issuing_date + datetime.timedelta(days=30)
+
         self.status = 'issued'
 
     def close(self):
@@ -141,14 +142,14 @@ class Invoice(Base):
     update_time = sa.Column(
         sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
 
-    def __init__(self, recipient, datestring, status='pending', status_message="Status Message"):
+    def __init__(self, recipient, datestring, bulk_id, status='pending', status_message="Status Message"):
         self.recipient = recipient['id']
         self.recipient_name = recipient['name']
 
         self.status = status
         self.status_message = status_message
         # generate reference number
-        end = str(self.recipient) + "000" + datestring
+        end = str(bulk_id) + datestring + str(self.recipient)
         no_check_digit = prefix + \
             ("0"*(REF_NUM_LENGTH-len(prefix)-len(end)-1)) + end
         self.esr = no_check_digit + stdnum_esr.calc_check_digit(no_check_digit)
