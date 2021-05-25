@@ -62,6 +62,20 @@ def getGroupPeopleIDs(group_id):
     response = hitobito('groups/{group}/people'.format(group=group_id))
     return list(map(lambda x: x['id'], response['people']))
 
+def getMailingListIDs(group_id,mailing_list_id):
+    """
+    Given a group ID and mailing list ID, return the IDs of all the people in that mailing list.
+    """
+    response = hitobito('groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
+    return response['mailing_lists'][0]['links']['subscribers']
+
+def getMailingListNameIDs(group_id, mailing_list_id):
+    """
+    Given a group ID and mailing list ID, return all the Names and IDs of people in that mailing list.
+    """
+    response = hitobito('groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
+    return [{'id': p['id'], 'name':getName(p)} for p in response['linked']['people']]
+
 
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
@@ -135,7 +149,7 @@ def getEmails(hitobitoPerson):
     emails = list()
     if hitobitoPerson['email']:
         emails.append(hitobitoPerson['email'])
-    else:
+    elif 'additional_emails' in hitobitoPerson['linked']:
         emails = list(map(lambda p: p['email'],
                           hitobitoPerson['linked']['additional_emails']))
     # remove duplicates
