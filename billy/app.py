@@ -6,26 +6,41 @@ import db
 
 from loguru import logger
 
+import secrets
 import zipfile
 import io
 from requests import HTTPError, ConnectionError
 from http import HTTPStatus
 
-from flask import Flask, request, jsonify, make_response, send_file, g
+from flask import Flask, request, jsonify, make_response, redirect, send_file, g, url_for, make_response
 from flask_marshmallow import Marshmallow
+from flask_dance.consumer import OAuth2ConsumerBlueprint
 from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
-
 from flask_mail import Mail, email_dispatched
 from smtplib import SMTPException
 from flask_cors import CORS
 
+HITOBITO_BASE = os.getenv('HITOBITO_HOST')
+UNPROTECTED_PATH = '/oauth'
+
+dance = OAuth2ConsumerBlueprint(
+    "billy", __name__,
+    client_id=os.getenv('HITOBITO_OAUTH_CLIENT_ID'),
+    client_secret=os.getenv('HITOBITO_OAUTH_SECRET'),
+    base_url=HITOBITO_BASE,
+    token_url="{base}/oauth/token".format(base=HITOBITO_BASE),
+    authorization_url="{base}/oauth/authorize".format(base=HITOBITO_BASE),
+    redirect_url=os.getenv('REDIRECT_URL_LOGIN'),
+    scope=['email', 'name', 'with_roles', 'api']
+)
+
 # init
 app = Flask(__name__)
+app.secret_key = secrets.token_urlsafe(32)
+app.register_blueprint(dance, url_prefix=UNPROTECTED_PATH)
 CORS(app)
-
-load_dotenv('./env/mail.env')
 
 mailServer = os.getenv('MAIL_SERVER')
 mailPort = os.getenv('MAIL_PORT')
@@ -47,7 +62,6 @@ app.config['MAIL_DEBUG'] = True
 app.config['MAIL_SUPPRESS_SEND'] = True
 
 mail = Mail(app)
-
 
 def log_message(message, app):
     logger.info("Sent to: {recipient} with CC: {cc} and BCC: {bcc}",
@@ -332,6 +346,19 @@ def getMailBody(bulk_id, id):
     
     return res
 
+@app.route('{path}/login'.format(path=UNPROTECTED_PATH))
+def login():
+    if not dance.session.authorized:
+        return redirect(url_for('billy.login'))
+
+
+@app.before_request
+def check():
+    if request.path.startswith(UNPROTECTED_PATH):
+        return
+    if not dance.session.authorized:
+        return make_response(
+            jsonify(code=HTTPStatus.UNAUTHORIZED, message=HTTPStatus.UNAUTHORIZED.phrase), HTTPStatus.UNAUTHORIZED)
 
 if __name__ == '__main__':
     app.run(debug=False, host="0.0.0.0")

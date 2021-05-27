@@ -26,6 +26,8 @@ services:
       - MYSQL_PORT=3306
       - BANK_IBAN=CH4031000039529071000
       - BANK_REF_PREFIX=123456
+      - OAUTHLIB_INSECURE_TRANSPORT=true
+      - REDIRECT_URL_LOGIN=http://localhost:1921/gruezzi
     build: .
     ports:
       - "5000:5000"
