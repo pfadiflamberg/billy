@@ -24,7 +24,7 @@ export function BulkCreateView() {
                 console.log('got response');
                 console.log(r);
             })
-            .catch(e => dispatch(handleError(e))); // TODO: needs different error here
+            .catch(e => dispatch(handleError(e)));
 
     }
 
@@ -33,7 +33,21 @@ export function BulkCreateView() {
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        formData[e.target.name] = e.target.value;
+        let target: string = e.target.name;
+        let value: string = e.target.value;
+        if (target === 'link') {
+            let groups = value.match('groups\/(?<groupID>[0-9]+)\/mailing_lists\/(?<mailingListID>[0-9]+)')?.groups;
+            let group = groups?.groupID;
+            let mailing = groups?.mailingListID;
+            if (group) {
+                formData['group'] = group;
+            }
+            if (mailing) {
+                formData['mailing_list'] = mailing;
+            }
+        } else {
+            formData[e.target.name] = value;
+        }
     }
 
     return (
@@ -52,13 +66,13 @@ export function BulkCreateView() {
                             onChange={handleChange}></Form.Control>
                     </Form.Group>
                     <Form.Group>
-                        <Form.Label>Root Group ID</Form.Label>
+                        <Form.Label>Mailing List URL</Form.Label>
                         <Form.Control
-                            name="group"
+                            name="link"
                             type="text"
-                            placeholder="12345"
+                            placeholder="https://db.scout.ch/de/groups/1147/mailing_lists/3518"
                             onChange={handleChange}></Form.Control>
-                        <Form.Text className="text-muted">All users in this and it's child groups are added to the bulk.</Form.Text>
+                        <Form.Text className="text-muted">The URL of the mailing list containing the recipients of the bulk invoice.</Form.Text>
                     </Form.Group>
                 </Form>
             </Modal.Body>
