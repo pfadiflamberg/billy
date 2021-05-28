@@ -6,26 +6,44 @@ import db
 
 from loguru import logger
 
+import secrets
 import zipfile
 import io
 from requests import HTTPError, ConnectionError
 from http import HTTPStatus
 
-from flask import Flask, request, jsonify, make_response, send_file, g
+from flask import Flask, request, jsonify, make_response, redirect, send_file, g, url_for, make_response
 from flask_marshmallow import Marshmallow
+from flask_dance.consumer import OAuth2ConsumerBlueprint
 from marshmallow import fields
 from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
-
 from flask_mail import Mail, email_dispatched
 from smtplib import SMTPException
 from flask_cors import CORS
 
+load_dotenv('./env/hitobito.env')
+load_dotenv('./env/mail.env')
+
+HITOBITO_BASE = os.getenv('HITOBITO_HOST')
+UNPROTECTED_PATH = '/oauth'
+
+dance = OAuth2ConsumerBlueprint(
+    "billy", __name__,
+    client_id=os.getenv('HITOBITO_OAUTH_CLIENT_ID'),
+    client_secret=os.getenv('HITOBITO_OAUTH_SECRET'),
+    base_url=HITOBITO_BASE,
+    token_url="{base}/oauth/token".format(base=HITOBITO_BASE),
+    authorization_url="{base}/oauth/authorize".format(base=HITOBITO_BASE),
+    redirect_url=os.getenv('REDIRECT_URL_LOGIN'),
+    scope=['email', 'name', 'with_roles', 'api']
+)
+
 # init
 app = Flask(__name__)
+app.secret_key = secrets.token_urlsafe(32)
+app.register_blueprint(dance, url_prefix=UNPROTECTED_PATH)
 CORS(app)
-
-load_dotenv('./env/mail.env')
 
 mailServer = os.getenv('MAIL_SERVER')
 mailPort = os.getenv('MAIL_PORT')
@@ -86,14 +104,18 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 bulkInvoiceSchema = BulkInvoiceSchema()
 bulkInvoicesSchema = BulkInvoiceSchema(many=True)
 
-#@app.errorhandler(Exception)
+# @app.errorhandler(Exception)
+
+
 def handle_unhandled(e):
     # Handle all others for now
-    return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase, details ={"name": type(e).__name__}), HTTPStatus.INTERNAL_SERVER_ERROR)
+    return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase, details={"name": type(e).__name__}), HTTPStatus.INTERNAL_SERVER_ERROR)
+
 
 @app.errorhandler(ConnectionError)
 def handle_connection_error(e):
-    return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase +": Could not connect to hitobito"), HTTPStatus.INTERNAL_SERVER_ERROR)
+    return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase + ": Could not connect to hitobito"), HTTPStatus.INTERNAL_SERVER_ERROR)
+
 
 @app.errorhandler(HTTPError)
 def handle_http_error(e):
@@ -101,40 +123,49 @@ def handle_http_error(e):
     # Else: Something with the HTTP response was wrong -> HTTPStatus.INTERNAL_SERVER_ERROR or 502
     """Return JSON instead of HTML for HTTP errors."""
     logger.debug("request: {request}, response: {response}, data: {data}",
-                request=e.request.url, response=e.response, data=e.response.content)
+                 request=e.request.url, response=e.response, data=e.response.content)
     if e.response.status_code == HTTPStatus.NOT_FOUND:
-        response=make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Invalid Argument: Group does not exist"), HTTPStatus.BAD_REQUEST)
+        response = make_response(jsonify(
+            code=HTTPStatus.BAD_REQUEST, message="Invalid Argument: Group does not exist"), HTTPStatus.BAD_REQUEST)
     else:
-        response = make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase +": Bad Answer to HTTP Request", details={"http_reason":e.response.reason, "http_code":e.response.status_code, "url":e.request.url}), HTTPStatus.INTERNAL_SERVER_ERROR)
+        response = make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase + ": Bad Answer to HTTP Request",
+                                 details={"http_reason": e.response.reason, "http_code": e.response.status_code, "url": e.request.url}), HTTPStatus.INTERNAL_SERVER_ERROR)
     return response
+
 
 @app.errorhandler(KeyError)
 def handle_key_error(e):
     # Missing Parameter -> HTTPStatus.BAD_REQUEST
-    return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Missing Parameter", details={"missing_parameter":e.args[0]}), HTTPStatus.BAD_REQUEST)
+    return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Missing Parameter", details={"missing_parameter": e.args[0]}), HTTPStatus.BAD_REQUEST)
+
 
 @app.errorhandler(NotIssued)
 def handle_not_issued(e):
     # Request was ok, but conflicts with resource state -> Invalid Argument
     return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Invalid Argument: Invoice has not been issued or already been closed", invoice_status=e.status), HTTPStatus.BAD_REQUEST)
 
+
 @app.errorhandler(SMTPException)
 def handle_mail_error(e):
     # Clients request was fine, but could not contact smtp/send mail -> HTTPStatus.INTERNAL_SERVER_ERROR
-    return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase +": SMTP", details={"smtp_code":e.smtp_code, "smtp_error":e.smtp_error.decode("utf-8")}), HTTPStatus.INTERNAL_SERVER_ERROR)
+    return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase + ": SMTP", details={"smtp_code": e.smtp_code, "smtp_error": e.smtp_error.decode("utf-8")}), HTTPStatus.INTERNAL_SERVER_ERROR)
+
 
 @app.errorhandler(db.ResourceNotFound)
 def handle_resource_not_found(e):
     # Resource not in database -> HTTPStatus.NOT_FOUND
     return make_response(jsonify(code=HTTPStatus.NOT_FOUND, message=HTTPStatus.NOT_FOUND.phrase), HTTPStatus.NOT_FOUND)
 
+
 @app.before_first_request
 def upgradeDB(version="head"):
     db.upgradeDatabase(version)
 
+
 @app.before_request
 def getSession():
     g.session = db.loadSession()
+
 
 @app.teardown_request
 def closeSession(_):
@@ -142,7 +173,6 @@ def closeSession(_):
         g.session.close()
     except:
         logger.log("Could not close session")
-
 
 
 @app.route('/bulk', methods=['POST'])
@@ -328,9 +358,24 @@ def getMailBody(bulk_id, id):
     invoice = db.getInvoice(session, id)
     msg = invoice.get_message()
     mail.send(msg)
-    res=jsonify(invoiceSchema.dump(invoice))
-    
+    res = jsonify(invoiceSchema.dump(invoice))
+
     return res
+
+
+@app.route('{path}/login'.format(path=UNPROTECTED_PATH))
+def login():
+    if not dance.session.authorized:
+        return redirect(url_for('billy.login'))
+
+
+@app.before_request
+def check():
+    if request.path.startswith(UNPROTECTED_PATH):
+        return
+    if not dance.session.authorized:
+        return make_response(
+            jsonify(code=HTTPStatus.UNAUTHORIZED, message=HTTPStatus.UNAUTHORIZED.phrase), HTTPStatus.UNAUTHORIZED)
 
 
 if __name__ == '__main__':

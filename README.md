@@ -4,6 +4,16 @@
 
 ### Setup
 
+For user authentication and to access hitobito the app needs to be registered as an oauth application on hitobito. The application needs all available scopes and a callback URL of the following form `API_SERVER/oauth/billy/authorized` (e.g. `http://localhost:5000/oauth/billy/authorized `).
+The configurations need to be stored in the `env/hitobito.env` file as follows:
+```text
+HITOBITO_OAUTH_CLIENT_ID=0FS55nbQMphZsDu1nBZQFnuIOclc6ORR7dYYEzvyZjU
+HITOBITO_OAUTH_SECRET=U1WMfNWXMMsFUwNHqylu9r0HQK1Z0pxCnorJwLRvjWo
+HITOBITO_HOST=https://pbs.puzzle.ch
+```
+
+> The following configurations are still necessary, but should no longer be soon.
+
 To access hitobito you need to provide some environment variables in the `env/hitobito.env` file, like so:
 
 ```txt
