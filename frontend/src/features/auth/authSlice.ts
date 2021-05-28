@@ -6,16 +6,22 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-    authenticated: false
+    authenticated: true
 }
 
 const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
-
+        unauthenticated: (state) => {
+            state.authenticated = false;
+        }
     }
 })
+
+const { unauthenticated } = authSlice.actions;
+
+export { unauthenticated };
 
 export const selectAuthenticatedState = (state: RootState) => state.auth.authenticated;
 

@@ -36,7 +36,7 @@ export function BulkCreateView() {
         let target: string = e.target.name;
         let value: string = e.target.value;
         if (target === 'link') {
-            let groups = value.match('groups\/(?<groupID>[0-9]+)\/mailing_lists\/(?<mailingListID>[0-9]+)')?.groups;
+            let groups = value.match('groups/(?<groupID>[0-9]+)/mailing_lists/(?<mailingListID>[0-9]+)')?.groups;
             let group = groups?.groupID;
             let mailing = groups?.mailingListID;
             if (group) {

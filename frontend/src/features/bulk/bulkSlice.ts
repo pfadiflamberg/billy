@@ -2,6 +2,8 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import {handleError} from "../error/errorSlice";
 import {selectBackendBase} from "../backend/backendSlice";
+import { request } from "../../app/request";
+import { unauthenticated } from "../auth/authSlice";
 
 const API_PATH_BULK = 'bulk'
 
@@ -45,8 +47,16 @@ export const fetchBulks = (): AppThunk => async (
     dispatch,
     getState
 ) => {
-    fetch([selectBackendBase(getState()), API_PATH_BULK].join('/'))
+
+    const BACKEND_BASE = selectBackendBase(getState());
+
+    // request(new URL('bulk', BACKEND_BASE), 'GET', null)
+    // .catch(e => dispatch(handleError(e)));
+    fetch([BACKEND_BASE, API_PATH_BULK].join('/'))
         .then(response => {
+            if (response.status == 401) {
+                dispatch(unauthenticated());
+            }
             // catchErrors(r);
             console.log(response);
             console.log(response.json());

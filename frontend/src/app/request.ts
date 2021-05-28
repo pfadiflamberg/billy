@@ -11,7 +11,7 @@ export async function request(url: URL, method: string, payload?: any): Promise<
             'Accept': '*/*',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload)
+        body: (payload == null) ? null : JSON.stringify(payload)
     })
     const data = await response.json();
     if (!(response.status in [200, 201])) {
