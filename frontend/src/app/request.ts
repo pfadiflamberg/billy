@@ -7,9 +7,11 @@ interface ErrorResponse {
 export async function request(url: URL, method: string, payload?: any): Promise<JSON> {
     const response = await fetch(url.toString(), {
         method: method,
+        credentials: "include",
         headers: {
             'Accept': '*/*',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
         },
         body: (payload == null) ? null : JSON.stringify(payload)
     })

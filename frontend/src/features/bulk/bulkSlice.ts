@@ -52,7 +52,12 @@ export const fetchBulks = (): AppThunk => async (
 
     // request(new URL('bulk', BACKEND_BASE), 'GET', null)
     // .catch(e => dispatch(handleError(e)));
-    fetch([BACKEND_BASE, API_PATH_BULK].join('/'))
+    fetch(new URL(API_PATH_BULK, BACKEND_BASE).toString(), {
+        credentials: "include",
+        headers: {
+            'Access-Control-Allow-Origin': '*', // TODO: make this dynamic
+        }
+    })
         .then(response => {
             if (response.status == 401) {
                 dispatch(unauthenticated());

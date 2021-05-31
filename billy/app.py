@@ -43,7 +43,8 @@ dance = OAuth2ConsumerBlueprint(
 app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(32)
 app.register_blueprint(dance, url_prefix=UNPROTECTED_PATH)
-CORS(app)
+CORS(app, origins=os.getenv('CLIENT_ORIGIN').split(
+    ','), supports_credentials=True)
 
 mailServer = os.getenv('MAIL_SERVER')
 mailPort = os.getenv('MAIL_PORT')
@@ -371,6 +372,8 @@ def login():
 
 @app.before_request
 def check():
+    if request.method == 'OPTIONS':  # preflight requests
+        return
     if request.path.startswith(UNPROTECTED_PATH):
         return
     if not dance.session.authorized:

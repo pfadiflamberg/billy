@@ -6,10 +6,16 @@ export function AuthView() {
 
     const BACKEND_BASE = useAppSelector(selectBackendBase);
 
-    console.log(BACKEND_BASE)
+    function redirect2Auth() {
+        const url = new URL('oauth/login', BACKEND_BASE);
+        window.location.replace(url.toString());
+    }
+
+    redirect2Auth();
 
     return (
-        <button onClick={e => window.location.replace(new URL('oauth/login', BACKEND_BASE).toString())}>Login</button>
+        <div></div>
+        // nice for debugging <button onClick={e => redirect2Auth()}>Login</button>
     )
 
 }
