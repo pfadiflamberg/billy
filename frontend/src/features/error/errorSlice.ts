@@ -1,5 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
+import { unauthenticated } from "../auth/authSlice";
 
 interface ErrorState {
     errors: Error[];
@@ -33,6 +34,11 @@ export const handleError = (error: any): AppThunk => async (
     } else {
         // unexpected error type
         throw(error);
+    }
+    console.log(error.toString());
+    if (error.toString() === 'Error: Unauthorized') {
+        dispatch(unauthenticated());
+        return
     }
     dispatch(addError(error));
 }

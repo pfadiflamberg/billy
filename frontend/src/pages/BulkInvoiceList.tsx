@@ -8,7 +8,6 @@ export function BulkInvoiceList() {
     const dispatch = useAppDispatch();
 
     useEffect(() => {
-        console.log('load data')
         dispatch(fetchBulks())
     })
 
