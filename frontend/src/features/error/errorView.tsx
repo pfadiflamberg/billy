@@ -1,9 +1,10 @@
-import {useAppSelector} from "../../app/hooks";
-import {selectErrors} from "./errorSlice";
-import React from "react";
+import {useAppDispatch, useAppSelector} from "../../app/hooks";
+import {clearErrors, selectErrors} from "./errorSlice";
 import {Modal} from 'react-bootstrap';
 
 export function ErrorView() {
+
+    const dispatch = useAppDispatch();
 
     const errors = useAppSelector(selectErrors);
 
@@ -13,10 +14,10 @@ export function ErrorView() {
         message = errors[0].message;
     }
 
-    return (
-        <Modal show={hasErrors}>
-            <Modal.Header>
-                <Modal.Title>Opppssssss...</Modal.Title>
+return (
+        <Modal show={hasErrors} onHide={() => dispatch(clearErrors())}>
+            <Modal.Header closeButton>
+                <Modal.Title>Error</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 {message}

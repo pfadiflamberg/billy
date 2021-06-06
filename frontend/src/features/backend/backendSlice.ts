@@ -25,7 +25,7 @@ export const backendSlice = createSlice({
                   )
             );
             if (isLocalhost) {
-                state.base = 'http://localhost:5000'
+                state.base = 'http://localhost:5000';
             }
         }
     }
@@ -33,6 +33,6 @@ export const backendSlice = createSlice({
 
 export const { selfConfigure } = backendSlice.actions;
 
-export const selectBackendBase = (state: RootState) => state.backend.base;
+export const selectBackendBase = (state: RootState) => new URL(state.backend.base);
 
 export default backendSlice.reducer;

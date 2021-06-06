@@ -2,11 +2,15 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import {handleError} from "../error/errorSlice";
 import {selectBackendBase} from "../backend/backendSlice";
+import { request } from "../../app/request";
 
 const API_PATH_BULK = 'bulk'
 
 export type Bulk = {
-    name: string
+    name: string,
+    display_name: string,
+    text_invoice: string,
+    text_reminder: string,
 }
 
 export type BulkDict = {
@@ -45,15 +49,19 @@ export const fetchBulks = (): AppThunk => async (
     dispatch,
     getState
 ) => {
-    fetch([selectBackendBase(getState()), API_PATH_BULK].join('/'))
-        .then(response => {
-            console.log(response)
-            console.log(response.json())
-            console.log('todo: add to store')
-            // let bulks: Bulk[];
-            // setBulks(bulks);
+
+    const BACKEND_BASE = selectBackendBase(getState());
+
+    interface BulkResponse {
+        items: any[],
+    }
+
+    request(new URL(API_PATH_BULK, BACKEND_BASE))
+        .then(r => {
+            const data = r as unknown as BulkResponse;
+            dispatch(setBulks(data.items));
         })
-        .catch(e => handleError(e))
+        .catch(e => dispatch(handleError(e)));
 }
 
 export const storeNewBulk = (newBulk: Bulk): AppThunk => async (
