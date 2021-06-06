@@ -7,7 +7,10 @@ import { request } from "../../app/request";
 const API_PATH_BULK = 'bulk'
 
 export type Bulk = {
-    name: string
+    name: string,
+    display_name: string,
+    text_invoice: string,
+    text_reminder: string,
 }
 
 export type BulkDict = {

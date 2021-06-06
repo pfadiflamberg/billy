@@ -1,9 +1,8 @@
-import React from 'react';
-import './App.css';
-
+import React, {useEffect} from 'react';
 import {useAppDispatch, useAppSelector} from "./app/hooks";
 import {selfConfigure} from "./features/backend/backendSlice";
 import {BulkInvoiceList} from "./pages/BulkInvoiceList";
+import {fetchBulks} from "./features/bulk/bulkSlice";
 import {ErrorView} from "./features/error/errorView";
 import {showCreateBulkView} from "./features/bulk/bulkSlice";
 import {Navbar, Nav, Button} from 'react-bootstrap';
@@ -11,11 +10,17 @@ import {BulkCreateView} from "./features/bulk/bulkCreateView";
 import {selectAuthenticatedState} from "./features/auth/authSlice";
 import {AuthView} from "./features/auth/authView";
 
+import './App.css';
+
 function App() {
 
   // self configure backend
   const dispatch = useAppDispatch();
   dispatch(selfConfigure());
+
+  useEffect(() => {
+    dispatch(fetchBulks())
+  })
 
   const authenticated: boolean = useAppSelector(selectAuthenticatedState);
 
