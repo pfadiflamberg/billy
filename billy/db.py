@@ -68,5 +68,7 @@ def getInvoiceList(session, id):
     return l
 
 # Exceptions
+
+
 class ResourceNotFound(Exception):
     ...

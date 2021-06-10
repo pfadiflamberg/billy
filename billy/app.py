@@ -96,9 +96,12 @@ class BulkInvoiceSchema(SQLAlchemySchema):
     name = fields.Str()
     display_name = fields.Str()
     issuing_date = auto_field()
+    update_time = auto_field()
     due_date = auto_field()
+    status = auto_field()
     text_invoice = auto_field()
     text_reminder = auto_field()
+    text_mail = auto_field()
 
 
 # Create the Schemas for BulkInvoices and lists of them

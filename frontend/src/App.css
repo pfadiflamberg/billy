@@ -1,0 +1,9 @@
+.badge {
+  float: right;
+}
+
+.BulkInvoiceList {
+  padding-top: 65px;
+  max-width: 800px;
+  margin: auto;
+}

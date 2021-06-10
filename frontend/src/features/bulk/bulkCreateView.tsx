@@ -2,31 +2,15 @@ import {useAppDispatch, useAppSelector} from "../../app/hooks";
 import React from "react";
 import {Button, Form, Modal} from 'react-bootstrap';
 import {selectShowCreateBulkView} from "./bulkSlice";
-import {showCreateBulkView} from "./bulkSlice";
-import {selectBackendBase} from "../backend/backendSlice";
-import {handleError} from "../error/errorSlice";
-import {request} from "../../app/request";
+import {showCreateBulkView, createBulk} from "./bulkSlice";
 
 export function BulkCreateView() {
 
     const dispatch = useAppDispatch();
 
     const show = useAppSelector(selectShowCreateBulkView);
-    const BACKEND_BASE = useAppSelector(selectBackendBase);
 
     let formData: { [key: string]: string } = {};
-
-    const handleCreate = () => {
-        request(new URL('bulk', BACKEND_BASE),
-            'POST',
-            formData)
-            .then(r => {
-                console.log('got response');
-                console.log(r);
-            })
-            .catch(e => dispatch(handleError(e)));
-
-    }
 
     const handleClose = () => {
         dispatch(showCreateBulkView(false));
@@ -77,7 +61,7 @@ export function BulkCreateView() {
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="primary" onClick={() => handleCreate()}>
+                <Button variant="primary" onClick={() => dispatch(createBulk(formData))}>
                     Create
                 </Button>
             </Modal.Footer>

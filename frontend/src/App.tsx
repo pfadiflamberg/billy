@@ -9,6 +9,7 @@ import {Navbar, Nav, Button} from 'react-bootstrap';
 import {BulkCreateView} from "./features/bulk/bulkCreateView";
 import {selectAuthenticatedState} from "./features/auth/authSlice";
 import {AuthView} from "./features/auth/authView";
+import {BulkView} from './features/bulk/bulkView';
 
 import './App.css';
 
@@ -28,7 +29,7 @@ function App() {
     <div className="App">
         { authenticated &&
         <div>
-            <Navbar bg="light" expand="lg">
+            <Navbar bg="light" expand="lg" fixed="top">
                 <Navbar.Brand href="#home">billy</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
@@ -38,6 +39,7 @@ function App() {
                 </Navbar.Collapse>
             </Navbar>
             <ErrorView />
+            <BulkView />
             <BulkInvoiceList />
             <BulkCreateView />
         </div>

@@ -65,7 +65,10 @@ class BulkInvoice(Base):
     def name(cls):
         return sa.func.concat("bulk/", cls.id)
 
-    def __init__(self, title, status='created', due_date=None, text_mail="{{ salutation }}, \n Dies ist eine Testmail\n Grüsse Pfnörch", text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch", text_reminder="Reminder Text"):
+    def __init__(self, title, status='created', due_date=None,
+                 text_mail="{{ salutation }}, \n You've got mail!\n Liebe Grüsse Pfnörch",
+                 text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch",
+                 text_reminder="Reminder Text"):
         self.title = title
         self.status = status
         self.due_date = due_date
@@ -75,7 +78,6 @@ class BulkInvoice(Base):
 
         self.create_time = datetime.datetime.utcnow()
         self.update_time = self.create_time
-
 
     # Create a property for the display name
 
@@ -89,7 +91,8 @@ class BulkInvoice(Base):
     # Functions for interacting with the BulkInvoice
     def issue(self, group_id, mailing_list_id):
         # TODO: add functionality
-        people = hitobito.getMailingListNameIDs(group_id=group_id, mailing_list_id=mailing_list_id)
+        people = hitobito.getMailingListNameIDs(
+            group_id=group_id, mailing_list_id=mailing_list_id)
         self.invoices = [Invoice(recipient, self.create_time.strftime(
             "%Y%m%d"), self.id) for recipient in people]
 
@@ -154,8 +157,8 @@ class Invoice(Base):
             ("0"*(REF_NUM_LENGTH-len(prefix)-len(end)-1)) + end
         self.esr = no_check_digit + stdnum_esr.calc_check_digit(no_check_digit)
 
-
     # Define a property for the name with the relative address
+
     @hybrid_property
     def name(self):
         return "bulk/%s/invoices/%s" % self.bulk_invoice_id, self.id
@@ -183,7 +186,7 @@ class Invoice(Base):
     def generate(self):
         if(self.bulk_invoice.status != 'issued'):
             raise NotIssued(self.bulk_invoice.status)
-        
+
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
         }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getPerson(sender), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
@@ -208,4 +211,3 @@ class Invoice(Base):
 class NotIssued(Exception):
     def __init__(self, status):
         self.status = status
-        
