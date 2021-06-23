@@ -22,6 +22,7 @@ def upgrade():
     sa.Column('status', mysql.ENUM('created', 'issued', 'closed'), nullable=False),
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.Text(), nullable=True),
+    sa.Column('mailing_list', sa.Text(), nullable=True),
     sa.Column('issuing_date', sa.TIMESTAMP(), nullable=True),
     sa.Column('due_date', sa.TIMESTAMP(), nullable=True),
     sa.Column('text_mail', sa.Text(), nullable=True),
