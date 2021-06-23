@@ -10,27 +10,7 @@ The configurations need to be stored in the `env/hitobito.env` file as follows:
 HITOBITO_OAUTH_CLIENT_ID=0FS55nbQMphZsDu1nBZQFnuIOclc6ORR7dYYEzvyZjU
 HITOBITO_OAUTH_SECRET=U1WMfNWXMMsFUwNHqylu9r0HQK1Z0pxCnorJwLRvjWo
 HITOBITO_HOST=https://pbs.puzzle.ch
-```
-
-> The following configurations are still necessary, but should no longer be soon.
-
-To access hitobito you need to provide some environment variables in the `env/hitobito.env` file, like so:
-
-```txt
-HITOBITO_EMAIL=pfnörch@flamberg.ch
-HITOBITO_TOKEN=*******************
-HITOBITO_SERVER=https://db.scout.ch
 HITOBITO_LANG=de -- one of: de, fr, it
-HITOBITO_SENDER=1234
-```
-`HITOBITO_SENDER` is the personal number of the person who will be the sender of the invoice, and is only used for testing when not provided by auth token.
-
-You can generate or lookup your toke using `curl`:
-
-```bash
-curl -d "person[email]=pfnörch@flamberg.ch" \
-     -d "person[password]=****************" \
-     https://db.scout.ch/users/sign_in.json
 ```
 
 To use mail functionality, you need to provide the server details for the mail server in `env/mail.env`:

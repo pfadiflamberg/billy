@@ -7,31 +7,20 @@ from flask import Flask
 from loguru import logger
 from os.path import join, dirname
 from requests.adapters import HTTPAdapter
+from app import dance
 
 load_dotenv('./env/hitobito.env')
 
 # we read them from the provided file
-hitobitoEmail = os.getenv('HITOBITO_EMAIL')
-hitobitoToken = os.getenv('HITOBITO_TOKEN')
-hitobitoServer = os.getenv('HITOBITO_SERVER')
 hitobitoLang = os.getenv('HITOBITO_LANG')
 
-headers = {
-    "Accept": "application/json",
-    "X-User-Email": hitobitoEmail,
-    "X-User-Token": hitobitoToken,
-}
+session = dance.session
 
-session = requests.Session()
-session.mount(hitobitoServer, HTTPAdapter(max_retries=5))
-session.headers.update(headers)
-
-# TODO: check if url points to hitobito-server, otherwise throw some exception
 
 def hitobito(request):
     assert(not request.startswith('/'))
-    url = os.path.join(hitobitoServer, hitobitoLang, request) + '.json'
-    response = session.get(url=url)
+    path = os.path.join(hitobitoLang, request) + '.json'
+    response = session.get(url=path)
     response.raise_for_status()
     return response.json()
 
@@ -62,24 +51,27 @@ def getGroupPeopleIDs(group_id):
     response = hitobito('groups/{group}/people'.format(group=group_id))
     return list(map(lambda x: x['id'], response['people']))
 
-def getMailingListIDs(group_id,mailing_list_id):
+
+def getMailingListIDs(group_id, mailing_list_id):
     """
     Given a group ID and mailing list ID, return the IDs of all the people in that mailing list.
     """
-    response = hitobito('groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
+    response = hitobito(
+        'groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
     return response['mailing_lists'][0]['links']['subscribers']
+
 
 def getMailingListNameIDs(group_id, mailing_list_id):
     """
     Given a group ID and mailing list ID, return all the Names and IDs of people in that mailing list.
     """
-    response = hitobito('groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
+    response = hitobito(
+        'groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
     return [{'id': p['id'], 'name':getName(p)} for p in response['linked']['people']]
 
 
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
-    #logger.debug(response)
     p = getHitobitoPerson(response)
     person = {
         'id': p['id'],
@@ -99,6 +91,7 @@ def getShortname(hitobitoPerson):
     if nickname:
         return nickname
     return hitobitoPerson['first_name']
+
 
 def getName(hitobitoPerson):
     return '{firstName} {lastName}'.format(
