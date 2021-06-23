@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import requests
 
@@ -52,21 +53,12 @@ def getGroupPeopleIDs(group_id):
     return list(map(lambda x: x['id'], response['people']))
 
 
-def getMailingListIDs(group_id, mailing_list_id):
+def getMailingListRecipients(mailing_list_url):
     """
-    Given a group ID and mailing list ID, return the IDs of all the people in that mailing list.
+    Given a mailing_list url, return all the recipients (IDs, Names).
     """
-    response = hitobito(
-        'groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
-    return response['mailing_lists'][0]['links']['subscribers']
-
-
-def getMailingListNameIDs(group_id, mailing_list_id):
-    """
-    Given a group ID and mailing list ID, return all the Names and IDs of people in that mailing list.
-    """
-    response = hitobito(
-        'groups/{group}/mailing_lists/{list}'.format(group=group_id, list=mailing_list_id))
+    p = re.compile('(groups\/[0-9]+\/mailing_lists\/[0-9]+)')
+    response = hitobito(p.search(mailing_list_url).group(0))
     return [{'id': p['id'], 'name':getName(p)} for p in response['linked']['people']]
 
 

@@ -11,9 +11,10 @@ export type Bulk = {
     display_name: string,
     status: string,
     update_time: string,
+    mailing_list: string,
+    text_mail: string,
     text_invoice: string,
     text_reminder: string,
-    text_mail: string,
 }
 
 export type BulkDict = {
@@ -52,9 +53,13 @@ export const bulkSlice = createSlice({
         },
         showUpdateBulkView: (state, { payload }: PayloadAction<boolean>) => {
             state.showUpdateBulkView = payload;
+            if (!payload) {
+                window.history.replaceState({}, "", window.location.origin);
+            }
         },
         selectBulk: (state, { payload }: PayloadAction<string>) => {
             state.selected = payload;
+            window.history.replaceState({}, "", payload);
         },
     }
 })
@@ -113,7 +118,7 @@ export const updateBulk = (bulk: Bulk): AppThunk => async (
         .catch(e => dispatch(handleError(e)));
 }
 
-export const duplicateBulk = (orgBulk: Bulk): AppThunk => async (
+export const duplicateBulk = (org_bulk: Bulk): AppThunk => async (
     dispatch,
     getState
 ) => {
@@ -122,24 +127,56 @@ export const duplicateBulk = (orgBulk: Bulk): AppThunk => async (
 
     // create new title (if possible change year)
     var year: number = new Date().getFullYear()
-    var newTitle = orgBulk.display_name.replace((year-1).toString(), year.toString());
-    if (newTitle === orgBulk.display_name) {
-        newTitle += ' (copy)';
+    var new_title = org_bulk.display_name.replace((year-1).toString(), year.toString());
+    if (new_title === org_bulk.display_name) {
+        new_title += ' (copy)';
     }
 
     var createBulkForm = {
-        'title': newTitle,
+        'title': new_title,
+        'mailing_list': org_bulk.mailing_list,
     };
 
     request(new URL(API_PATH_BULK, BACKEND_BASE), 'POST', createBulkForm)
         .then(r => {
-            console.log('created')
-            var newEmptyBulk: Bulk = r as unknown as Bulk;
-            var newBulk = JSON.parse(JSON.stringify(orgBulk));
-            newBulk.name = newEmptyBulk.name;
-            newBulk.display_name = newEmptyBulk.display_name;
-            request(new URL(orgBulk.name, BACKEND_BASE), 'PUT', newBulk);
-            dispatch(setBulk(newBulk));
+            var new_empty_bulk: Bulk = r as unknown as Bulk;
+            var new_bulk = JSON.parse(JSON.stringify(org_bulk));
+            new_bulk.name = new_empty_bulk.name;
+            new_bulk.display_name = new_empty_bulk.display_name;
+            new_bulk.status = new_empty_bulk.status;
+            request(new URL(org_bulk.name, BACKEND_BASE), 'PUT', new_bulk);
+            dispatch(setBulk(new_bulk));
+        })
+        .catch(e => dispatch(handleError(e)));
+}
+
+export const issueBulk = (bulk: Bulk): AppThunk => async (
+    dispatch,
+    getState,
+) => {
+
+    const BACKEND_BASE = selectBackendBase(getState());
+
+    request(new URL(bulk.name + ":issue", BACKEND_BASE), 'POST')
+        .then(r => {
+            var updated_bulk = JSON.parse(JSON.stringify(bulk));
+            updated_bulk.status = 'issued'
+            dispatch(setBulk(updated_bulk));
+            dispatch(showUpdateBulkView(false));
+        })
+        .catch(e => dispatch(handleError(e)));
+}
+
+export const getBulkPDFs = (bulk: Bulk): AppThunk => async (
+    dispatch,
+    getState,
+) => {
+
+    const BACKEND_BASE = selectBackendBase(getState());
+
+    request(new URL(bulk.name + ":generate", BACKEND_BASE), 'POST')
+        .then(r => {
+
         })
         .catch(e => dispatch(handleError(e)));
 }

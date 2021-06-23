@@ -2,8 +2,21 @@
   float: right;
 }
 
+.actions .btn {
+  margin-left: 10px;
+}
+
 .BulkInvoiceList {
   padding-top: 65px;
   max-width: 800px;
   margin: auto;
+}
+
+.BulkInvoiceListTitle {
+  margin-top: -5px;
+  font-weight: 600;
+}
+
+.BulkInvoiceListSubTitle {
+  font-size: x-small;
 }

@@ -96,6 +96,7 @@ class BulkInvoiceSchema(SQLAlchemySchema):
     # Define the relevant fields for JSON
     name = fields.Str()
     display_name = fields.Str()
+    mailing_list = auto_field()
     issuing_date = auto_field()
     update_time = auto_field()
     due_date = auto_field()
@@ -186,9 +187,10 @@ def addBulkInvoice():
 
     # Get the 'group' parameter
     title = request.json['title']
+    mailing_list = request.json['mailing_list']
 
     # Create add, and commit the new bulk invoice to get the id
-    newBI = BulkInvoice(title=title)
+    newBI = BulkInvoice(title=title, mailing_list=mailing_list)
     session.add(newBI)
     session.commit()
 
@@ -221,18 +223,26 @@ def updateBulkInvoice(id):
 
     # Get BulkInvoice
     bi = db.getBulkInvoice(session, id)
+    if bi.status != 'closed':
+        return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message="Closed bulks can no longer be updated."), HTTPStatus.METHOD_NOT_ALLOWED)
 
     # Get json paramters, default to old if not supplied
+    title = request.json.get('title', bi.title)
+    mailing_list = request.json.get('mailing_list', bi.mailing_list)
     text_mail = request.json.get('text_mail', bi.text_mail)
     text_invoice = request.json.get('text_invoice', bi.text_invoice)
     text_reminder = request.json.get('text_reminder', bi.text_reminder)
-    title = request.json.get('title', bi.title)
+
+    if bi.status == 'issued':
+        if bi.mailing_list != mailing_list:
+            return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="The mailing list of an issued bulk can not be changed."), HTTPStatus.BAD_REQUEST)
 
     # Update the attributes
+    bi.title = title
+    bi.mailing_list = mailing_list
     bi.text_mail = text_mail
     bi.text_invoice = text_invoice
     bi.text_reminder = text_reminder
-    bi.title = title
 
     # Dump the data, commit and close the session
     res = jsonify(bulkInvoiceSchema.dump(bi))
@@ -244,13 +254,11 @@ def updateBulkInvoice(id):
 def issueBulkInvoice(id):
     session = g.session
 
-    group = request.json['group']
-    mailing_list = request.json['mailing_list']
-
     bi = db.getBulkInvoice(session, id)
-    if bi.status != 'issued':
-        bi.issue(group, mailing_list)
+    if bi.status != 'draft':
+        return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message=HTTPStatus.METHOD_NOT_ALLOWED.phrase), HTTPStatus.METHOD_NOT_ALLOWED)
 
+    bi.issue()
     res = jsonify(bulkInvoiceSchema.dump(bi))
     session.commit()
     return res
@@ -304,21 +312,21 @@ def generateBulkInvoice(id):
     )
 
 
-@app.route('/bulk/<bulk_id>/invoices/<id>', methods=['GET'])
-def getInvoice(bulk_id, id):
-    session = g.session
-
-    # jsonify the dump of the bulk invoice
-    res = jsonify(invoiceSchema.dump(db.getInvoice(session, id)))
-    return res
-
-
 @app.route('/bulk/<id>/invoices', methods=['GET'])
 def getInvoices(id):
     session = g.session
 
     # jsonify the dump of the list of invoices
     res = jsonify(items=invoicesSchema.dump(db.getInvoiceList(session, id)))
+    return res
+
+
+@app.route('/bulk/<bulk_id>/invoices/<id>', methods=['GET'])
+def getInvoice(bulk_id, id):
+    session = g.session
+
+    # jsonify the dump of the bulk invoice
+    res = jsonify(invoiceSchema.dump(db.getInvoice(session, id)))
     return res
 
 

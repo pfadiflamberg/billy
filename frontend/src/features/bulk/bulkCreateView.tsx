@@ -1,8 +1,8 @@
-import {useAppDispatch, useAppSelector} from "../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import React from "react";
-import {Button, Form, Modal} from 'react-bootstrap';
-import {selectShowCreateBulkView} from "./bulkSlice";
-import {showCreateBulkView, createBulk} from "./bulkSlice";
+import { Button, Form, Modal } from 'react-bootstrap';
+import { selectShowCreateBulkView } from "./bulkSlice";
+import { showCreateBulkView, createBulk } from "./bulkSlice";
 
 export function BulkCreateView() {
 
@@ -17,21 +17,7 @@ export function BulkCreateView() {
     }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let target: string = e.target.name;
-        let value: string = e.target.value;
-        if (target === 'link') {
-            let groups = value.match('groups/(?<groupID>[0-9]+)/mailing_lists/(?<mailingListID>[0-9]+)')?.groups;
-            let group = groups?.groupID;
-            let mailing = groups?.mailingListID;
-            if (group) {
-                formData['group'] = group;
-            }
-            if (mailing) {
-                formData['mailing_list'] = mailing;
-            }
-        } else {
-            formData[e.target.name] = value;
-        }
+        formData[e.target.name] = e.target.value;
     }
 
     return (
@@ -52,7 +38,7 @@ export function BulkCreateView() {
                     <Form.Group>
                         <Form.Label>Mailing List URL</Form.Label>
                         <Form.Control
-                            name="link"
+                            name="mailing_list"
                             type="text"
                             placeholder="https://db.scout.ch/de/groups/1147/mailing_lists/3518"
                             onChange={handleChange}></Form.Control>

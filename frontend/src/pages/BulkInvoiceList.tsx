@@ -1,11 +1,11 @@
-import {useAppSelector, useAppDispatch} from "../app/hooks";
-import {selectBulks} from "../features/bulk/bulkSlice";
-import {selectBulk, duplicateBulk} from "../features/bulk/bulkSlice";
-import {ListGroup, Badge, DropdownButton, Dropdown} from 'react-bootstrap';
+import { useAppSelector, useAppDispatch } from "../app/hooks";
+import { selectBulks } from "../features/bulk/bulkSlice";
+import { selectBulk, duplicateBulk, getBulkPDFs } from "../features/bulk/bulkSlice";
+import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
 function badgeVariantForStatus(status: string): string {
     switch (status) {
-        case 'created':
+        case 'draft':
             return 'secondary'
         case 'issued':
             return 'primary'
@@ -25,20 +25,52 @@ export function BulkInvoiceList() {
     return (
         <div className="BulkInvoiceList">
             <ListGroup>
-                { Object.keys(bulks).reverse().map((name) => {
+                {Object.keys(bulks).reverse().map((name) => {
                     const bulk = bulks[name];
                     return (
                         <ListGroup.Item key={name} action onClick={() => dispatch(selectBulk(name))}>
-                            {bulk.display_name}
-                            <div>
-                            <Badge variant={badgeVariantForStatus(bulk.status)}>{bulk.status}</Badge>
-                            <DropdownButton title={''} onClick={e => e.stopPropagation()}>
-                                <Dropdown.Item onClick={e => dispatch(duplicateBulk(bulk))}>Duplicate</Dropdown.Item>
-                            </DropdownButton>
-                            </div>
+                            <Row>
+                                <Col>
+                                    <div className="BulkInvoiceListTitle">
+                                        {bulk.display_name}
+                                    </div>
+                                    <div className="BulkInvoiceListSubTitle">
+                                        updated: {new Date(bulk.update_time).toLocaleString('de-DE')}
+                                    </div>
+                                </Col>
+                                <Col xs={3}>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                        <ButtonGroup size="sm">
+                                            <Button
+                                                onClick={e => e.stopPropagation()}
+                                                variant={badgeVariantForStatus(bulk.status)}>
+                                                {bulk.status}
+                                            </Button>
+                                            <DropdownButton
+                                                as={ButtonGroup}
+                                                title={''}
+                                                id={bulk.name}
+                                                size="sm"
+                                                variant={badgeVariantForStatus(bulk.status)}
+                                                onClick={e => e.stopPropagation()}
+                                            >
+                                                {bulk.status == 'draft' &&
+                                                    <Dropdown.Item onClick={e => dispatch(selectBulk(name))}>Issue</Dropdown.Item>
+                                                }
+                                                <Dropdown.Item onClick={e => console.log('TODO')}>TODO: Send via Email</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => dispatch(getBulkPDFs(bulk))}>Download PDFs</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => console.log('TODO')}>TODO: Upload Payment Record</Dropdown.Item>
+                                                <Dropdown.Divider />
+                                                <Dropdown.Item onClick={e => dispatch(selectBulk(name))}>View</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => dispatch(duplicateBulk(bulk))}>Duplicate</Dropdown.Item>
+                                            </DropdownButton>
+                                        </ButtonGroup>
+                                    </div>
+                                </Col>
+                            </Row>
                         </ListGroup.Item>
                     )
-                }) }
+                })}
             </ListGroup>
         </div>
     )

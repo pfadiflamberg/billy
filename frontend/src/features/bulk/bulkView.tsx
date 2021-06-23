@@ -1,6 +1,6 @@
-import {useAppDispatch, useAppSelector} from "../../app/hooks";
-import {Button, Form, Modal} from 'react-bootstrap';
-import {selectShowUpdateBulkView, selectSelectedBulk, showUpdateBulkView, selectBulk, selectBulks, updateBulk, Bulk} from "./bulkSlice";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { Button, Form, Modal } from 'react-bootstrap';
+import { selectShowUpdateBulkView, selectSelectedBulk, showUpdateBulkView, selectBulk, selectBulks, updateBulk, Bulk, issueBulk } from "./bulkSlice";
 
 export function BulkView() {
 
@@ -23,10 +23,10 @@ export function BulkView() {
                 dispatch(showUpdateBulkView(false));
                 dispatch(selectBulk(''))
             }} size="lg">
-                { bulk &&
+                {bulk &&
                     <div>
                         <Modal.Header closeButton>
-                        <Modal.Title>{bulk.display_name}</Modal.Title>
+                            <Modal.Title>{bulk.display_name}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             <Form>
@@ -37,6 +37,15 @@ export function BulkView() {
                                         type="text"
                                         onChange={e => (bulk) ? bulk.display_name = e.target.value : true}
                                         defaultValue={bulk.display_name}>
+                                    </Form.Control>
+                                </Form.Group>
+                                <Form.Group>
+                                    <Form.Label>Mailing List:</Form.Label>
+                                    <Form.Control readOnly={readOnly}
+                                        name="mailing_list"
+                                        type="text"
+                                        onChange={e => (bulk) ? bulk.mailing_list = e.target.value : true}
+                                        defaultValue={bulk.mailing_list}>
                                     </Form.Control>
                                 </Form.Group>
                                 <Form.Group>
@@ -70,20 +79,23 @@ export function BulkView() {
                                     </Form.Control>
                                 </Form.Group>
                             </Form>
-                            { readOnly &&
+                            {readOnly &&
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button variant="secondary" type="submit" onClick={() => dispatch(showUpdateBulkView(true))}>
-                                        Edit
-                                    </Button>
+                                    <div className="actions">
+                                        <Button variant="secondary" type="submit" onClick={() => dispatch(showUpdateBulkView(true))}>
+                                            Edit
+                                        </Button>
+                                        {bulk && bulk.status == 'draft' &&
+                                            <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(issueBulk(bulk)) : true}>
+                                                Issue
+                                            </Button>
+                                        }
+                                    </div>
                                 </div>
                             }
-                            { !readOnly &&
+                            {!readOnly &&
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button variant="primary" type="submit" onClick={() => {
-                                        if (bulk) {
-                                            dispatch(updateBulk(bulk));
-                                        }
-                                    }}>
+                                    <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(updateBulk(bulk)) : true} >
                                         Save
                                     </Button>
                                 </div>

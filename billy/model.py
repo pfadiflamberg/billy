@@ -6,6 +6,9 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 import datetime
 
+from loguru import logger
+
+
 import stdnum.ch.esr as stdnum_esr
 
 from flask import render_template_string
@@ -38,11 +41,12 @@ except ImportError:
 class BulkInvoice(Base):
     __tablename__ = "bulk_invoice"
 
-    status = sa.Column(ENUM('created', 'issued', 'closed',
+    status = sa.Column(ENUM('draft', 'issued', 'closed',
                        name='bulk_invoice_status'), nullable=False)
 
     id = sa.Column(sa.Integer, primary_key=True)
     title = sa.Column(sa.Text)
+    mailing_list = sa.Column(sa.Text)
     issuing_date = sa.Column(sa.TIMESTAMP)
     due_date = sa.Column(sa.TIMESTAMP)
 
@@ -65,11 +69,12 @@ class BulkInvoice(Base):
     def name(cls):
         return sa.func.concat("bulk/", cls.id)
 
-    def __init__(self, title, status='created', due_date=None,
+    def __init__(self, title, mailing_list, status='draft', due_date=None,
                  text_mail="{{ salutation }}, \n You've got mail!\n Liebe Grüsse Pfnörch",
                  text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch",
                  text_reminder="Reminder Text"):
         self.title = title
+        self.mailing_list = mailing_list
         self.status = status
         self.due_date = due_date
         self.text_mail = text_mail
@@ -89,12 +94,12 @@ class BulkInvoice(Base):
     invoices = relationship("Invoice", back_populates="bulk_invoice")
 
     # Functions for interacting with the BulkInvoice
-    def issue(self, group_id, mailing_list_id):
+    def issue(self):
         # TODO: add functionality
-        people = hitobito.getMailingListNameIDs(
-            group_id=group_id, mailing_list_id=mailing_list_id)
+        recipients = hitobito.getMailingListRecipients(self.mailing_list)
+        logger.debug(recipients)
         self.invoices = [Invoice(recipient, self.create_time.strftime(
-            "%Y%m%d"), self.id) for recipient in people]
+            "%Y%m%d"), self.id) for recipient in recipients]
 
         self.issuing_date = datetime.datetime.utcnow()
         self.due_date = self.issuing_date + datetime.timedelta(days=30)
@@ -118,8 +123,8 @@ class BulkInvoice(Base):
             return [invoice.generate() for invoice in self.invoices]
 
     def __repr__(self):
-        return "<BulkInvoice(id=%s, title=%s,status=%s, issuing_date=%s, due_date=%s, len(invoices)=%s, create_time=%s, update_time=%s, text_invoice=%s(...), text_reminder=%s(...))>" % (
-            self.id, self.title, self.status, self.issuing_date, self.due_date, len(self.invoices), self.create_time, self.update_time, str(self.text_invoice)[0:5], str(self.text_reminder)[0:5])
+        return "<BulkInvoice(id=%s, title=%s, mailing_list=%s, status=%s, issuing_date=%s, due_date=%s, len(invoices)=%s, create_time=%s, update_time=%s, text_invoice=%s(...), text_reminder=%s(...))>" % (
+            self.id, self.title, self.mailing_list, self.status, self.issuing_date, self.due_date, len(self.invoices), self.create_time, self.update_time, str(self.text_invoice)[0:5], str(self.text_reminder)[0:5])
 
 
 # Base for the SQL Schema

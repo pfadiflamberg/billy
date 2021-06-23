@@ -66,9 +66,8 @@ Create a new bulk invoice.
 
 | Name  | Description | Example | Required |
 |-------|-------------|---------|----------|
-| group | The group that contains the mailing list. |         | yes |
-| mailing_list | The mailing list whose subscribers are added as recipients. |         | yes |
-| title | A title for the bulk invoice. |         | yes |
+| title | A title for the bulk invoice. | Membership 2021        | yes |
+| mailing_list | The url of the mailing list whose subscribers are added as recipients. | https://db.scout.ch/de/groups/1147/mailing_lists/3518 | yes |
 
 #### Get
 
@@ -128,7 +127,7 @@ POST /bulk/<id>:send
 This will send all pending invoices of this bulk via email.
 
 #### Generate
-
+****
 ```
 POST /bulk/<id>:generate
 ```
