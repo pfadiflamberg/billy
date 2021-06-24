@@ -52,7 +52,7 @@ Run: `docker-compose up`
 }
 ```
 
-## Requets
+## Requests
 
 ### Bulk Invoice
 
@@ -174,11 +174,10 @@ This will return a list of invoice resources that are associated with a bulk:
 #### Generate
 
 ```
-POST /bulk/<id>/invoice/<id>:generate
+GET /bulk/<id>/invoice/<id>.pdf
 ```
 
 This will generate the invoices as pdf and return it.
 
 #### TODO:
-- [ ] Create Frontend
 - [ ] make sure we don't run as root

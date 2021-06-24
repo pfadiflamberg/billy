@@ -78,6 +78,12 @@ def getPerson(person_id):
     return person
 
 
+def getUser():
+    response = hitobito('oauth/profile')
+    person_id = response['id']
+    return getPerson(person_id)
+
+
 def getShortname(hitobitoPerson):
     nickname = getNickname(hitobitoPerson)
     if nickname:

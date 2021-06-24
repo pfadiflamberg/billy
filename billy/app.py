@@ -359,7 +359,7 @@ def updateInvoice(bulk_id, id):
     return res
 
 
-@app.route('/bulk/<bulk_id>/invoice/<id>:generate', methods=['POST'])
+@app.route('/bulk/<bulk_id>/invoice/<id>.pdf', methods=['GET'])
 def generateInvoice(bulk_id, id):
     session = g.session
 

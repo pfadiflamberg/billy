@@ -1,4 +1,5 @@
 import { useAppSelector } from "../../app/hooks";
+import { selectBackendBase } from "../backend/backendSlice";
 import { selectInvoices } from "./invoiceSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
@@ -17,6 +18,8 @@ function badgeVariantForStatus(status: string): string {
 
 
 export function InvoiceListView() {
+
+    const BACKEND_BASE = useAppSelector(selectBackendBase);
 
     const invoices = useAppSelector(selectInvoices);
 
@@ -53,7 +56,7 @@ export function InvoiceListView() {
                                                 onClick={e => e.stopPropagation()}
                                             >
                                                 <Dropdown.Item onClick={e => console.log('TODO')}>Send Mail</Dropdown.Item>
-                                                <Dropdown.Item onClick={e => console.log('TODO')}>Get PDF</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => window.open(BACKEND_BASE + invoice.name + '.pdf')}>Get PDF</Dropdown.Item>
                                                 <Dropdown.Divider />
                                                 <Dropdown.Item onClick={e => console.log('TODO')}>Annul</Dropdown.Item>
                                             </DropdownButton>
