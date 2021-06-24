@@ -139,13 +139,13 @@ This will generate all pending invoices as pdf and return a a zip file containin
 #### Get
 
 ```
-GET /bulk/<id>/invoices/<id>
+GET /bulk/<id>/invoice/<id>
 ```
 
 #### Put
 
 ```
-GET /bulk/<id>/invoices/<id>
+GET /bulk/<id>/invoice/<id>
 ```
 
 Update an indivual invoice.
@@ -158,7 +158,7 @@ Update an indivual invoice.
 #### List
 
 ```
-GET /bulk/<id>/invoices
+GET /bulk/<id>/invoice
 ```
 
 This will return a list of invoice resources that are associated with a bulk:
@@ -174,7 +174,7 @@ This will return a list of invoice resources that are associated with a bulk:
 #### Generate
 
 ```
-POST /bulk/<id>/invocies/<id>:generate
+POST /bulk/<id>/invoice/<id>:generate
 ```
 
 This will generate the invoices as pdf and return it.

@@ -166,12 +166,12 @@ class Invoice(Base):
 
     @hybrid_property
     def name(self):
-        return "bulk/%s/invoices/%s" % self.bulk_invoice_id, self.id
+        return "bulk/%s/invoice/%s" % (self.bulk_invoice_id, self.id)
 
     # Define the SQL expression for this synonym in order to enable queries using it
     @name.expression
     def name(cls):
-        return sa.func.concat("bulk/", cls.bulk_invoice_id, "/invoices/", cls.id)
+        return sa.func.concat("bulk/", cls.bulk_invoice_id, "/invoice/", cls.id)
 
     @hybrid_property
     def mail_body(self):

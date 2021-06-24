@@ -1,8 +1,9 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import backendReducer from '../features/backend/backendSlice';
 import errorReducer from '../features/error/errorSlice';
-import bulkReducer from '../features/bulk/bulkSlice';
 import authReducer from '../features/auth/authSlice';
+import bulkReducer from '../features/bulk/bulkSlice';
+import invoiceReducer from '../features/invoice/invoiceSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     error: errorReducer,
     auth: authReducer,
     bulk: bulkReducer,
+    invoice: invoiceReducer,
   },
 });
 

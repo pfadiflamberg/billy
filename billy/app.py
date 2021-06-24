@@ -83,6 +83,15 @@ class InvoiceSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Invoice
 
+    # Define the relevant fields for JSON
+    name = fields.Str()
+    update_time = auto_field()
+    status = auto_field()
+    status_message = auto_field()
+    recipient = auto_field()
+    recipient_name = auto_field()
+    esr = auto_field()
+
 
 # Create the Schemas for Invoices and lists of them
 invoiceSchema = InvoiceSchema()
@@ -223,7 +232,7 @@ def updateBulkInvoice(id):
 
     # Get BulkInvoice
     bi = db.getBulkInvoice(session, id)
-    if bi.status != 'closed':
+    if bi.status == 'closed':
         return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message="Closed bulks can no longer be updated."), HTTPStatus.METHOD_NOT_ALLOWED)
 
     # Get json paramters, default to old if not supplied
@@ -312,16 +321,17 @@ def generateBulkInvoice(id):
     )
 
 
-@app.route('/bulk/<id>/invoices', methods=['GET'])
+@app.route('/bulk/<id>/invoice', methods=['GET'])
 def getInvoices(id):
     session = g.session
 
+    # TODO: return an error if the bulk is still a draft
     # jsonify the dump of the list of invoices
     res = jsonify(items=invoicesSchema.dump(db.getInvoiceList(session, id)))
     return res
 
 
-@app.route('/bulk/<bulk_id>/invoices/<id>', methods=['GET'])
+@app.route('/bulk/<bulk_id>/invoice/<id>', methods=['GET'])
 def getInvoice(bulk_id, id):
     session = g.session
 
@@ -330,7 +340,7 @@ def getInvoice(bulk_id, id):
     return res
 
 
-@app.route('/bulk/<bulk_id>/invoices/<id>', methods=['PUT'])
+@app.route('/bulk/<bulk_id>/invoice/<id>', methods=['PUT'])
 def updateInvoice(bulk_id, id):
     session = g.session
 
@@ -349,7 +359,7 @@ def updateInvoice(bulk_id, id):
     return res
 
 
-@app.route('/bulk/<bulk_id>/invoices/<id>:generate', methods=['POST'])
+@app.route('/bulk/<bulk_id>/invoice/<id>:generate', methods=['POST'])
 def generateInvoice(bulk_id, id):
     session = g.session
 
@@ -364,7 +374,7 @@ def generateInvoice(bulk_id, id):
     return response
 
 
-@app.route('/bulk/<bulk_id>/invoices/<id>/mail', methods=['POST'])
+@app.route('/bulk/<bulk_id>/invoice/<id>/mail', methods=['POST'])
 def getMailBody(bulk_id, id):
     session = g.session
 
