@@ -13,7 +13,6 @@ import stdnum.ch.esr as stdnum_esr
 
 from flask import render_template_string
 from flask_mail import Message
-
 from dotenv import load_dotenv
 
 
@@ -23,7 +22,6 @@ Base = declarative_base()
 load_dotenv('./env/mail.env')
 mailDefaultSender = os.getenv("MAIL_DEFAULT_SENDER")
 load_dotenv('./env/hitobito.env')
-sender = os.getenv("HITOBITO_SENDER")
 
 load_dotenv('./env/bank.env')
 prefix = os.getenv('BANK_REF_PREFIX')
@@ -166,12 +164,12 @@ class Invoice(Base):
 
     @hybrid_property
     def name(self):
-        return "bulk/%s/invoices/%s" % self.bulk_invoice_id, self.id
+        return "bulk/%s/invoice/%s" % (self.bulk_invoice_id, self.id)
 
     # Define the SQL expression for this synonym in order to enable queries using it
     @name.expression
     def name(cls):
-        return sa.func.concat("bulk/", cls.bulk_invoice_id, "/invoices/", cls.id)
+        return sa.func.concat("bulk/", cls.bulk_invoice_id, "/invoice/", cls.id)
 
     @hybrid_property
     def mail_body(self):
@@ -194,7 +192,7 @@ class Invoice(Base):
 
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
-        }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getPerson(sender), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
+        }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getUser(), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
 
         return string
 

@@ -11,6 +11,7 @@ HITOBITO_OAUTH_CLIENT_ID=0FS55nbQMphZsDu1nBZQFnuIOclc6ORR7dYYEzvyZjU
 HITOBITO_OAUTH_SECRET=U1WMfNWXMMsFUwNHqylu9r0HQK1Z0pxCnorJwLRvjWo
 HITOBITO_HOST=https://pbs.puzzle.ch
 HITOBITO_LANG=de -- one of: de, fr, it
+HITOBITO_GROUP=1 -- the group allowed to login to the application
 ```
 
 To use mail functionality, you need to provide the server details for the mail server in `env/mail.env`:
@@ -52,7 +53,7 @@ Run: `docker-compose up`
 }
 ```
 
-## Requets
+## Requests
 
 ### Bulk Invoice
 
@@ -139,13 +140,13 @@ This will generate all pending invoices as pdf and return a a zip file containin
 #### Get
 
 ```
-GET /bulk/<id>/invoices/<id>
+GET /bulk/<id>/invoice/<id>
 ```
 
 #### Put
 
 ```
-GET /bulk/<id>/invoices/<id>
+GET /bulk/<id>/invoice/<id>
 ```
 
 Update an indivual invoice.
@@ -158,7 +159,7 @@ Update an indivual invoice.
 #### List
 
 ```
-GET /bulk/<id>/invoices
+GET /bulk/<id>/invoice
 ```
 
 This will return a list of invoice resources that are associated with a bulk:
@@ -174,7 +175,7 @@ This will return a list of invoice resources that are associated with a bulk:
 #### Generate
 
 ```
-POST /bulk/<id>/invocies/<id>:generate
+GET /bulk/<id>/invoice/<id>.pdf
 ```
 
 This will generate the invoices as pdf and return it.

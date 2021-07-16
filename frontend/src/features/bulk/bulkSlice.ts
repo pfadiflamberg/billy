@@ -1,6 +1,7 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import {handleError} from "../error/errorSlice";
+import {fetchInvoicesByBulk} from "../invoice/invoiceSlice";
 import {selectBackendBase} from "../backend/backendSlice";
 import { request } from "../../app/request";
 
@@ -22,10 +23,10 @@ export type BulkDict = {
 }
 
 export interface BulkState {
-    items: BulkDict;
+    items: BulkDict,
     selected: string,
-    showCreateBulkView: boolean;
-    showUpdateBulkView: boolean;
+    showCreateBulkView: boolean,
+    showUpdateBulkView: boolean,
 }
 
 const initialState: BulkState = {
@@ -48,23 +49,31 @@ export const bulkSlice = createSlice({
         setBulk: (state, { payload }: PayloadAction<Bulk>) => {
             state.items[payload.name] = payload;
         },
+        setSelectedBulk: (state, { payload }: PayloadAction<string>) => {
+            state.selected = payload;
+        },
+        deselectBulk: (state) => {
+            state.selected = '';
+            window.history.replaceState({}, "", window.location.origin);
+        },
         showCreateBulkView: (state, { payload }: PayloadAction<boolean>) => {
             state.showCreateBulkView = payload;
         },
         showUpdateBulkView: (state, { payload }: PayloadAction<boolean>) => {
             state.showUpdateBulkView = payload;
-            if (!payload) {
-                window.history.replaceState({}, "", window.location.origin);
-            }
-        },
-        selectBulk: (state, { payload }: PayloadAction<string>) => {
-            state.selected = payload;
-            window.history.replaceState({}, "", payload);
         },
     }
 })
 
-const { setBulks, setBulk, showCreateBulkView, showUpdateBulkView, selectBulk } = bulkSlice.actions;
+const { setBulks, setBulk, setSelectedBulk, deselectBulk, showCreateBulkView, showUpdateBulkView } = bulkSlice.actions;
+
+export const selectBulk = (bulk: Bulk): AppThunk => async (
+    dispatch,
+) => {
+    window.history.replaceState({}, "", bulk.name);
+    dispatch(setSelectedBulk(bulk.name));
+    dispatch(fetchInvoicesByBulk(bulk));
+}
 
 export const fetchBulks = (): AppThunk => async (
     dispatch,
@@ -98,7 +107,7 @@ export const createBulk = (data: { [key: string]: string }): AppThunk => async (
             const bulk = r as unknown as Bulk;
             dispatch(setBulk(bulk));
             dispatch(showUpdateBulkView(true));
-            dispatch(selectBulk(bulk.name));
+            dispatch(selectBulk(bulk));
         })
         .catch(e => dispatch(handleError(e)));
 }
@@ -186,6 +195,6 @@ export const selectSelectedBulk = (state: RootState) => state.bulk.selected;
 export const selectShowCreateBulkView = (state: RootState) => state.bulk.showCreateBulkView;
 export const selectShowUpdateBulkView = (state: RootState) => state.bulk.showUpdateBulkView;
 
-export { showCreateBulkView, showUpdateBulkView, selectBulk };
+export { showCreateBulkView, showUpdateBulkView, deselectBulk };
 
 export default bulkSlice.reducer;

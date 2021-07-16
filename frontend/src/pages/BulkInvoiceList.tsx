@@ -28,7 +28,7 @@ export function BulkInvoiceList() {
                 {Object.keys(bulks).reverse().map((name) => {
                     const bulk = bulks[name];
                     return (
-                        <ListGroup.Item key={name} action onClick={() => dispatch(selectBulk(name))}>
+                        <ListGroup.Item key={name} action onClick={() => dispatch(selectBulk(bulk))}>
                             <Row>
                                 <Col>
                                     <div className="BulkInvoiceListTitle">
@@ -54,14 +54,14 @@ export function BulkInvoiceList() {
                                                 variant={badgeVariantForStatus(bulk.status)}
                                                 onClick={e => e.stopPropagation()}
                                             >
-                                                {bulk.status == 'draft' &&
-                                                    <Dropdown.Item onClick={e => dispatch(selectBulk(name))}>Issue</Dropdown.Item>
+                                                {bulk.status === 'draft' &&
+                                                    <Dropdown.Item onClick={e => dispatch(selectBulk(bulk))}>Issue</Dropdown.Item>
                                                 }
                                                 <Dropdown.Item onClick={e => console.log('TODO')}>TODO: Send via Email</Dropdown.Item>
                                                 <Dropdown.Item onClick={e => dispatch(getBulkPDFs(bulk))}>Download PDFs</Dropdown.Item>
                                                 <Dropdown.Item onClick={e => console.log('TODO')}>TODO: Upload Payment Record</Dropdown.Item>
                                                 <Dropdown.Divider />
-                                                <Dropdown.Item onClick={e => dispatch(selectBulk(name))}>View</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => dispatch(selectBulk(bulk))}>View</Dropdown.Item>
                                                 <Dropdown.Item onClick={e => dispatch(duplicateBulk(bulk))}>Duplicate</Dropdown.Item>
                                             </DropdownButton>
                                         </ButtonGroup>

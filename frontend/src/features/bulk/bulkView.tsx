@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { Button, Form, Modal } from 'react-bootstrap';
-import { selectShowUpdateBulkView, selectSelectedBulk, showUpdateBulkView, selectBulk, selectBulks, updateBulk, Bulk, issueBulk } from "./bulkSlice";
+import { selectShowUpdateBulkView, selectSelectedBulk, showUpdateBulkView, deselectBulk, selectBulks, updateBulk, Bulk, issueBulk } from "./bulkSlice";
+import { InvoiceListView } from "../invoice/invoiceListView";
 
 export function BulkView() {
 
@@ -21,7 +22,7 @@ export function BulkView() {
         <div>
             <Modal show={bulk} onHide={() => {
                 dispatch(showUpdateBulkView(false));
-                dispatch(selectBulk(''))
+                dispatch(deselectBulk())
             }} size="lg">
                 {bulk &&
                     <div>
@@ -79,13 +80,19 @@ export function BulkView() {
                                     </Form.Control>
                                 </Form.Group>
                             </Form>
+                            {bulk && bulk.status !== 'draft' &&
+                                <div>
+                                    Invoices:
+                                    <InvoiceListView />
+                                </div>
+                            }
                             {readOnly &&
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                     <div className="actions">
                                         <Button variant="secondary" type="submit" onClick={() => dispatch(showUpdateBulkView(true))}>
                                             Edit
                                         </Button>
-                                        {bulk && bulk.status == 'draft' &&
+                                        {bulk && bulk.status === 'draft' &&
                                             <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(issueBulk(bulk)) : true}>
                                                 Issue
                                             </Button>
