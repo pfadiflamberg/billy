@@ -19,6 +19,7 @@ from smtplib import SMTPException
 from flask_cors import CORS
 
 load_dotenv('./env/hitobito.env')
+load_dotenv('./env/server.env')
 load_dotenv('./env/mail.env')
 
 HITOBITO_BASE = os.getenv('HITOBITO_HOST')

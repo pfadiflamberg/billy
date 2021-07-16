@@ -6,12 +6,24 @@
 
 For user authentication and to access hitobito the app needs to be registered as an oauth application on hitobito. The application needs all available scopes and a callback URL of the following form `API_SERVER/oauth/billy/authorized` (e.g. `http://localhost:5000/oauth/billy/authorized `).
 The configurations need to be stored in the `env/hitobito.env` file as follows:
+
 ```text
 HITOBITO_OAUTH_CLIENT_ID=0FS55nbQMphZsDu1nBZQFnuIOclc6ORR7dYYEzvyZjU
 HITOBITO_OAUTH_SECRET=U1WMfNWXMMsFUwNHqylu9r0HQK1Z0pxCnorJwLRvjWo
 HITOBITO_HOST=https://pbs.puzzle.ch
 HITOBITO_LANG=de -- one of: de, fr, it
 HITOBITO_GROUP=1 -- the group allowed to login to the application
+```
+
+Furthermore you need to configure the api and frontend urls in `env/server.env`:
+```
+CLIENT_ORIGIN=http://localhost:1921
+REDIRECT_URL_LOGIN=http://localhost:1921
+```
+
+To run locally you must add the following environment variable as well:
+```
+OAUTHLIB_INSECURE_TRANSPORT=true
 ```
 
 To use mail functionality, you need to provide the server details for the mail server in `env/mail.env`:
@@ -32,10 +44,17 @@ BANK_IBAN=CH40...
 BANK_REF_PREFIX=123456
 ```
 
-
 #### Run with Docker-Compose
 
-Run: `docker-compose up`
+Run: `docker compose --profile billy up`
+
+The following profiles are available:
+- billy: run the complete application
+- backend: run the backend (db + server)
+- db: to only run the db
+- frontend: run only the frontend
+- migrations: to create new migrations (see documentation)
+
 
 ## Resources
 
@@ -204,10 +223,9 @@ revision script must be generated to upgrade the database accordingly. This is d
    be detected by alembic, see the
    [documentation](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect).
    Fix any issues you discover.
-   
+
 4. Done. Rebuild the container with `docker-compose up --build`, and the new
    revision will automatically be applied before the first request is answered.
 
 ## TODO:
-- [ ] Create Frontend
 - [ ] make sure we don't run as root

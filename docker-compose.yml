@@ -16,6 +16,12 @@ services:
       - ./sql:/docker-entrypoint-initdb.d
     cap_add:
       - SYS_NICE
+    profiles:
+      - "billy"
+      - "backend"
+      - "db"
+      - "migration"
+
   backend:
     container_name: billy-backend
     environment:
@@ -24,16 +30,24 @@ services:
       - MYSQL_DB=billy
       - MYSQL_SERVER=mysql
       - MYSQL_PORT=3306
-      - BANK_IBAN=CH4031000039529071000
-      - BANK_REF_PREFIX=123456
-      - OAUTHLIB_INSECURE_TRANSPORT=true
-      - CLIENT_ORIGIN=http://localhost:1921
-      - REDIRECT_URL_LOGIN=http://localhost:1921/gruezzi
     build: .
     ports:
       - "5000:5000"
     depends_on:
       - "mysql"
+    profiles:
+      - "billy"
+      - "backend"
+
+  frontend:
+    container_name: billy-frontend
+    build: frontend
+    ports:
+      - "1921:3000"
+    profiles:
+      - "billy"
+      - "frontend"
+
   migration:
     container_name: billy-migration
     environment:
@@ -42,11 +56,6 @@ services:
       - MYSQL_DB=billy
       - MYSQL_SERVER=mysql
       - MYSQL_PORT=3306
-      - BANK_IBAN=CH4031000039529071000
-      - BANK_REF_PREFIX=123456
-      - OAUTHLIB_INSECURE_TRANSPORT=true
-      - CLIENT_ORIGIN=http://localhost:1921
-      - REDIRECT_URL_LOGIN=http://localhost:1921/gruezzi
     build: .
     volumes:
       - ".:/usr/src/app"
@@ -54,8 +63,3 @@ services:
       - "mysql"
     profiles:
       - "migration"
-  frontend:
-    container_name: billy-frontend
-    build: frontend
-    ports:
-      - "1921:3000"
