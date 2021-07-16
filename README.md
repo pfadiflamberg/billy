@@ -180,11 +180,13 @@ POST /bulk/<id>/invocies/<id>:generate
 This will generate the invoices as pdf and return it.
 
 ## Development
-### Generating migrations
 
-When a change in the database model in `model.py` has been written, an alembic
-revision script must be generated so that these changes are reflected in the
-MySQL database. Here are the steps:
+
+### Migrations
+
+When the model in `model.py` has been changed, an alembic
+revision script must be generated to upgrade the database accordingly. This is done as follows:
+
 1. Run `docker-compose --profile migration up`
 
 2. Inside the container `billy-migration`, run the command `alembic revision
