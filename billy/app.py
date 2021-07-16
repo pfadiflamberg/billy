@@ -1,24 +1,18 @@
-import logging
-from dotenv import load_dotenv
 import os
-import hitobito
-
-from model import Invoice, BulkInvoice, NotIssued
 import db
-
-from loguru import logger
-
 import secrets
 import zipfile
 import io
+
+from model import Invoice, BulkInvoice, NotIssued
+from loguru import logger
 from requests import HTTPError, ConnectionError
 from http import HTTPStatus
-
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify, make_response, redirect, send_file, g, url_for, make_response
 from flask_marshmallow import Marshmallow
 from flask_dance.consumer import OAuth2ConsumerBlueprint, oauth_authorized
 from marshmallow import fields
-from flask_marshmallow.sqla import HyperlinkRelated
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 from flask_mail import Mail, email_dispatched
 from smtplib import SMTPException
@@ -327,7 +321,10 @@ def generateBulkInvoice(id):
 def getInvoices(id):
     session = g.session
 
-    # TODO: return an error if the bulk is still a draft
+    bi = db.getBulkInvoice(session, id)
+    if bi.status != 'draft':
+        return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message=HTTPStatus.METHOD_NOT_ALLOWED.phrase + ": bulk needs to be issued."), HTTPStatus.METHOD_NOT_ALLOWED)
+
     # jsonify the dump of the list of invoices
     res = jsonify(items=invoicesSchema.dump(db.getInvoiceList(session, id)))
     return res
