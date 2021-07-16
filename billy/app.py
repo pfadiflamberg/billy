@@ -323,7 +323,7 @@ def getInvoices(id):
     session = g.session
 
     bi = db.getBulkInvoice(session, id)
-    if bi.status != 'draft':
+    if bi.status == 'draft':
         return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message=HTTPStatus.METHOD_NOT_ALLOWED.phrase + ": bulk needs to be issued."), HTTPStatus.METHOD_NOT_ALLOWED)
 
     # jsonify the dump of the list of invoices
