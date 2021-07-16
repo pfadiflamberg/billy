@@ -179,6 +179,32 @@ POST /bulk/<id>/invocies/<id>:generate
 
 This will generate the invoices as pdf and return it.
 
-#### TODO:
+## Development
+### Generating migrations
+
+When a change in the database model in `model.py` has been written, an alembic
+revision script must be generated so that these changes are reflected in the
+MySQL database. Here are the steps:
+1. Run `docker-compose --profile migration up`
+
+2. Inside the container `billy-migration`, run the command `alembic revision
+   --autogenerate -m "message"`, where "message" should be a short description
+   of the changes.  This can be done either by attaching a shell to the
+   container or running the following command on the host: `docker container
+   exec -it billy-migration alembic revision --autogenerate -m "message"`
+
+   This will have created a new revision inside the folder `migrations/versions`.
+   This revision is automatically copied to the host machine, and you can stop
+   the containers now and do the following steps on the host.
+
+3. Manually check the newly created revision: Some changes cannot automatically
+   be detected by alembic, see the
+   [documentation](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect).
+   Fix any issues you discover.
+   
+4. Done. Rebuild the container with `docker-compose up --build`, and the new
+   revision will automatically be applied before the first request is answered.
+
+## TODO:
 - [ ] Create Frontend
 - [ ] make sure we don't run as root

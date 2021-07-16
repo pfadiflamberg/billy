@@ -34,6 +34,26 @@ services:
       - "5000:5000"
     depends_on:
       - "mysql"
+  migration:
+    container_name: billy-migration
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PW=password
+      - MYSQL_DB=billy
+      - MYSQL_SERVER=mysql
+      - MYSQL_PORT=3306
+      - BANK_IBAN=CH4031000039529071000
+      - BANK_REF_PREFIX=123456
+      - OAUTHLIB_INSECURE_TRANSPORT=true
+      - CLIENT_ORIGIN=http://localhost:1921
+      - REDIRECT_URL_LOGIN=http://localhost:1921/gruezzi
+    build: .
+    volumes:
+      - ".:/usr/src/app"
+    depends_on:
+      - "mysql"
+    profiles:
+      - "migration"
   frontend:
     container_name: billy-frontend
     build: frontend
