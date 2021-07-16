@@ -11,6 +11,7 @@ HITOBITO_OAUTH_CLIENT_ID=0FS55nbQMphZsDu1nBZQFnuIOclc6ORR7dYYEzvyZjU
 HITOBITO_OAUTH_SECRET=U1WMfNWXMMsFUwNHqylu9r0HQK1Z0pxCnorJwLRvjWo
 HITOBITO_HOST=https://pbs.puzzle.ch
 HITOBITO_LANG=de -- one of: de, fr, it
+HITOBITO_GROUP=1 -- the group allowed to login to the application
 ```
 
 To use mail functionality, you need to provide the server details for the mail server in `env/mail.env`:
