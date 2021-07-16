@@ -1,6 +1,7 @@
+import os
+
 from alembic import command
 from alembic.config import Config
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from model import BulkInvoice, Invoice
@@ -44,7 +45,10 @@ def downgradeDatabase(version="base"):
 
 
 def getBulkInvoice(session, id):
-    return session.query(BulkInvoice).get(id)
+    bi = session.query(BulkInvoice).get(id)
+    if bi is None:
+        raise ResourceNotFound()
+    return bi
 
 
 def getBulkInvoiceList(session):
@@ -52,8 +56,20 @@ def getBulkInvoiceList(session):
 
 
 def getInvoice(session, id):
-    return session.query(Invoice).get(id)
+    i = session.query(Invoice).get(id)
+    if i is None:
+        raise ResourceNotFound()
+    return i
 
 
 def getInvoiceList(session, id):
-    return session.query(BulkInvoice).get(id).invoices
+    l = session.query(BulkInvoice).get(id).invoices
+    if l is None:
+        raise ResourceNotFound()
+    return l
+
+# Exceptions
+
+
+class ResourceNotFound(Exception):
+    ...

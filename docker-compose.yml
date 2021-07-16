@@ -16,6 +16,12 @@ services:
       - ./sql:/docker-entrypoint-initdb.d
     cap_add:
       - SYS_NICE
+    profiles:
+      - "billy"
+      - "backend"
+      - "db"
+      - "migration"
+
   backend:
     container_name: billy-backend
     environment:
@@ -24,15 +30,36 @@ services:
       - MYSQL_DB=billy
       - MYSQL_SERVER=mysql
       - MYSQL_PORT=3306
-      - BANK_IBAN=CH4031000039529071000
-      - BANK_REF_PREFIX=123456
     build: .
     ports:
       - "5000:5000"
     depends_on:
       - "mysql"
+    profiles:
+      - "billy"
+      - "backend"
+
   frontend:
     container_name: billy-frontend
     build: frontend
     ports:
-      - "1921:8080"
+      - "1921:3000"
+    profiles:
+      - "billy"
+      - "frontend"
+
+  migration:
+    container_name: billy-migration
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PW=password
+      - MYSQL_DB=billy
+      - MYSQL_SERVER=mysql
+      - MYSQL_PORT=3306
+    build: .
+    volumes:
+      - ".:/usr/src/app"
+    depends_on:
+      - "mysql"
+    profiles:
+      - "migration"

@@ -4,23 +4,26 @@
 
 ### Setup
 
-To access hitobito you need to provide some environment variables in the `env/hitobito.env` file, like so:
+For user authentication and to access hitobito the app needs to be registered as an oauth application on hitobito. The application needs all available scopes and a callback URL of the following form `API_SERVER/oauth/billy/authorized` (e.g. `http://localhost:5000/oauth/billy/authorized `).
+The configurations need to be stored in the `env/hitobito.env` file as follows:
 
-```txt
-HITOBITO_EMAIL=pfnörch@flamberg.ch
-HITOBITO_TOKEN=*******************
-HITOBITO_SERVER=https://db.scout.ch
+```text
+HITOBITO_OAUTH_CLIENT_ID=0FS55nbQMphZsDu1nBZQFnuIOclc6ORR7dYYEzvyZjU
+HITOBITO_OAUTH_SECRET=U1WMfNWXMMsFUwNHqylu9r0HQK1Z0pxCnorJwLRvjWo
+HITOBITO_HOST=https://pbs.puzzle.ch
 HITOBITO_LANG=de -- one of: de, fr, it
-HITOBITO_SENDER=1234
+HITOBITO_GROUP=1 -- the group allowed to login to the application
 ```
-`HITOBITO_SENDER` is the personal number of the person who will be the sender of the invoice, and is only used for testing when not provided by auth token.
 
-You can generate or lookup your toke using `curl`:
+Furthermore you need to configure the api and frontend urls in `env/server.env`:
+```
+CLIENT_ORIGIN=http://localhost:1921
+REDIRECT_URL_LOGIN=http://localhost:1921
+```
 
-```bash
-curl -d "person[email]=pfnörch@flamberg.ch" \
-     -d "person[password]=****************" \
-     https://db.scout.ch/users/sign_in.json
+To run locally you must add the following environment variable as well:
+```
+OAUTHLIB_INSECURE_TRANSPORT=true
 ```
 
 To use mail functionality, you need to provide the server details for the mail server in `env/mail.env`:
@@ -41,10 +44,17 @@ BANK_IBAN=CH40...
 BANK_REF_PREFIX=123456
 ```
 
-
 #### Run with Docker-Compose
 
-Run: `docker-compose up`
+Run: `docker compose --profile billy up`
+
+The following profiles are available:
+- billy: run the complete application
+- backend: run the backend (db + server)
+- db: to only run the db
+- frontend: run only the frontend
+- migrations: to create new migrations (see documentation)
+
 
 ## Resources
 
@@ -62,7 +72,7 @@ Run: `docker-compose up`
 }
 ```
 
-## Requets
+## Requests
 
 ### Bulk Invoice
 
@@ -76,7 +86,8 @@ Create a new bulk invoice.
 
 | Name  | Description | Example | Required |
 |-------|-------------|---------|----------|
-| group | The group (and its children) that are added as recipients. |         | yes |
+| title | A title for the bulk invoice. | Membership 2021        | yes |
+| mailing_list | The url of the mailing list whose subscribers are added as recipients. | https://db.scout.ch/de/groups/1147/mailing_lists/3518 | yes |
 
 #### Get
 
@@ -136,7 +147,7 @@ POST /bulk/<id>:send
 This will send all pending invoices of this bulk via email.
 
 #### Generate
-
+****
 ```
 POST /bulk/<id>:generate
 ```
@@ -148,13 +159,13 @@ This will generate all pending invoices as pdf and return a a zip file containin
 #### Get
 
 ```
-GET /bulk/<id>/invoices/<id>
+GET /bulk/<id>/invoice/<id>
 ```
 
 #### Put
 
 ```
-GET /bulk/<id>/invoices/<id>
+GET /bulk/<id>/invoice/<id>
 ```
 
 Update an indivual invoice.
@@ -167,7 +178,7 @@ Update an indivual invoice.
 #### List
 
 ```
-GET /bulk/<id>/invoices
+GET /bulk/<id>/invoice
 ```
 
 This will return a list of invoice resources that are associated with a bulk:
@@ -183,11 +194,38 @@ This will return a list of invoice resources that are associated with a bulk:
 #### Generate
 
 ```
-POST /bulk/<id>/invocies/<id>:generate
+GET /bulk/<id>/invoice/<id>.pdf
 ```
 
 This will generate the invoices as pdf and return it.
 
-#### TODO:
-- [ ] Create Frontend
+## Development
+
+
+### Migrations
+
+When the model in `model.py` has been changed, an alembic
+revision script must be generated to upgrade the database accordingly. This is done as follows:
+
+1. Run `docker-compose --profile migration up`
+
+2. Inside the container `billy-migration`, run the command `alembic revision
+   --autogenerate -m "message"`, where "message" should be a short description
+   of the changes.  This can be done either by attaching a shell to the
+   container or running the following command on the host: `docker container
+   exec -it billy-migration alembic revision --autogenerate -m "message"`
+
+   This will have created a new revision inside the folder `migrations/versions`.
+   This revision is automatically copied to the host machine, and you can stop
+   the containers now and do the following steps on the host.
+
+3. Manually check the newly created revision: Some changes cannot automatically
+   be detected by alembic, see the
+   [documentation](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#what-does-autogenerate-detect-and-what-does-it-not-detect).
+   Fix any issues you discover.
+
+4. Done. Rebuild the container with `docker-compose up --build`, and the new
+   revision will automatically be applied before the first request is answered.
+
+## TODO:
 - [ ] make sure we don't run as root

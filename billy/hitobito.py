@@ -1,41 +1,22 @@
 import os
-import sys
-import requests
+import re
 
 from dotenv import load_dotenv
-from flask import Flask
-from http import HTTPStatus
-from loguru import logger
-from os.path import join, dirname
-from requests.adapters import HTTPAdapter
+from app import dance
 
 load_dotenv('./env/hitobito.env')
 
 # we read them from the provided file
-hitobitoEmail = os.getenv('HITOBITO_EMAIL')
-hitobitoToken = os.getenv('HITOBITO_TOKEN')
-hitobitoServer = os.getenv('HITOBITO_SERVER')
 hitobitoLang = os.getenv('HITOBITO_LANG')
 
-headers = {
-    "Accept": "application/json",
-    "X-User-Email": hitobitoEmail,
-    "X-User-Token": hitobitoToken,
-}
-
-session = requests.Session()
-session.mount(hitobitoServer, HTTPAdapter(max_retries=5))
-session.headers.update(headers)
+session = dance.session
 
 
 def hitobito(request):
     assert(not request.startswith('/'))
-    url = os.path.join(hitobitoServer, hitobitoLang, request) + '.json'
-    response = session.get(url=url)
-    if not response.status_code == HTTPStatus.OK:
-        logger.debug("request: {request}, response: {response}, data: {data}",
-                     request=url, response=response, data=response.json())
-        raise Exception('Failed to access resource.')
+    path = os.path.join(hitobitoLang, request) + '.json'
+    response = session.get(url=path)
+    response.raise_for_status()
     return response.json()
 
 
@@ -66,9 +47,17 @@ def getGroupPeopleIDs(group_id):
     return list(map(lambda x: x['id'], response['people']))
 
 
+def getMailingListRecipients(mailing_list_url):
+    """
+    Given a mailing_list url, return all the recipients (IDs, Names).
+    """
+    p = re.compile('(groups\/[0-9]+\/mailing_lists\/[0-9]+)')
+    response = hitobito(p.search(mailing_list_url).group(0))
+    return [{'id': p['id'], 'name':getName(p)} for p in response['linked']['people']]
+
+
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
-    #logger.debug(response)
     p = getHitobitoPerson(response)
     person = {
         'id': p['id'],
@@ -83,11 +72,18 @@ def getPerson(person_id):
     return person
 
 
+def getUser():
+    response = hitobito('oauth/profile')
+    person_id = response['id']
+    return getPerson(person_id)
+
+
 def getShortname(hitobitoPerson):
     nickname = getNickname(hitobitoPerson)
     if nickname:
         return nickname
     return hitobitoPerson['first_name']
+
 
 def getName(hitobitoPerson):
     return '{firstName} {lastName}'.format(
@@ -138,7 +134,7 @@ def getEmails(hitobitoPerson):
     emails = list()
     if hitobitoPerson['email']:
         emails.append(hitobitoPerson['email'])
-    else:
+    elif 'additional_emails' in hitobitoPerson['linked']:
         emails = list(map(lambda p: p['email'],
                           hitobitoPerson['linked']['additional_emails']))
     # remove duplicates

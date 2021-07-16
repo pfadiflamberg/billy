@@ -1,9 +1,11 @@
-from qrbill.bill import QRBill
 import os
 import pdfkit
 import locale
 
-locale.setlocale(locale.LC_TIME, "de_CH.UTF-8")  # TODO: this should be in app.py or something
+from qrbill.bill import QRBill
+
+# TODO: this should be in app.py or something
+locale.setlocale(locale.LC_TIME, "de_CH.UTF-8")
 
 TMP_SVG_FILE = 'bill.svg'
 INVOICE_TEMPLATE = 'resources/html/invoice.html'
@@ -28,10 +30,10 @@ def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_se
         ['Pfadfinderkorps Flamberg, Kasse und Versicherung',
          ', '.join(
              [hitobito_sender['name']
-              + ' / {nickname}'.format(nickname=hitobito_sender['nickname']) if hitobito_sender['nickname'] else '',
+              + ' / {nickname}'.format(
+                  nickname=hitobito_sender['nickname']) if hitobito_sender['nickname'] else '',
               hitobito_sender['addr']['street'],
-              ' '.join([hitobito_sender['addr']['zip'], hitobito_sender['addr']['town']])])
-            ,
+              ' '.join([hitobito_sender['addr']['zip'], hitobito_sender['addr']['town']])]),
          'cassa@flamberg.ch, www.flamberg.ch']))
     invoice = invoice.replace('{{ sender_address }}', ', '.join(
         [hitobito_sender['name'],
@@ -39,16 +41,19 @@ def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_se
          ' '.join([hitobito_sender['addr']['zip'], hitobito_sender['addr']['town']])]))
     invoice = invoice.replace('{{ recipient_address }}', '<br>'.join([
         hitobito_debtor['name']
-        + ' / {nickname}'.format(nickname=hitobito_debtor['nickname']) if hitobito_debtor['nickname'] else '',
+        + (' / {nickname}'.format(
+            nickname=hitobito_debtor['nickname']) if hitobito_debtor['nickname'] else ''),
         hitobito_debtor['addr']['street'],
-        ' '.join([hitobito_debtor['addr']['zip'], hitobito_debtor['addr']['town']])
+        ' '.join([hitobito_debtor['addr']['zip'],
+                 hitobito_debtor['addr']['town']])
     ]))
     invoice = invoice.replace('{{ info }}', '{place}, {date}'.format(
         place=hitobito_sender['addr']['town'],
         date=date.strftime('%d. %B %Y'),
     ))
     invoice = invoice.replace('{{ title }}', title)
-    invoice = invoice.replace('{{ text }}', text_body.replace('\n', '<br><br>'))
+    invoice = invoice.replace(
+        '{{ text }}', text_body.replace('\n', '<br><br>'))
 
     # generate qr bill as svg
     bill = QRBill(
