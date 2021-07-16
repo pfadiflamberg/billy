@@ -1,13 +1,7 @@
 import os
 import re
-import sys
-import requests
 
 from dotenv import load_dotenv
-from flask import Flask
-from loguru import logger
-from os.path import join, dirname
-from requests.adapters import HTTPAdapter
 from app import dance
 
 load_dotenv('./env/hitobito.env')

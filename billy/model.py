@@ -1,22 +1,17 @@
 import os
-
 import sqlalchemy as sa
+import datetime
+import stdnum.ch.esr as stdnum_esr
+
 from sqlalchemy.dialects.mysql import ENUM
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
-import datetime
-
 from loguru import logger
-
-
-import stdnum.ch.esr as stdnum_esr
-
 from flask import render_template_string
 from flask_mail import Message
 from dotenv import load_dotenv
-
-
 from sqlalchemy.ext.declarative import declarative_base
+
 Base = declarative_base()
 
 load_dotenv('./env/mail.env')

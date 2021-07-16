@@ -1,6 +1,7 @@
+import os
+
 from alembic import command
 from alembic.config import Config
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from model import BulkInvoice, Invoice
