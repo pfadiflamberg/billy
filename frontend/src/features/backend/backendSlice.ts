@@ -29,7 +29,7 @@ export const backendSlice = createSlice({
             if (isLocalhost) {
                 state.base = 'http://localhost:5000';
             } else {
-                state.base = window.location.protocol + '//' + window.location.hostname + ':5000'
+                state.base = window.location.protocol + '//' + window.location.hostname + ':1921'
                 if (window.location.protocol === 'https:') {
                     state.tls = true
                 }
