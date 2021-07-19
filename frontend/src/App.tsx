@@ -27,7 +27,7 @@ function App() {
 
   return (
     <div className="App">
-      { authenticated &&
+      {authenticated &&
         <div>
           <Navbar bg="light" expand="lg" fixed="top">
             <Navbar.Brand href="#home">billy</Navbar.Brand>
@@ -44,7 +44,7 @@ function App() {
           <BulkCreateView />
         </div>
       }
-      { !authenticated &&
+      {!authenticated &&
         <div>
           <AuthView />
         </div>
