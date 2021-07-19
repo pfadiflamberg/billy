@@ -46,6 +46,46 @@ BANK_IBAN=CH40...
 BANK_REF_PREFIX=123456
 ```
 
+### Run with NGINX
+
+To deploy billy you need to run it behind a proxy to add TLS. To make sure the API magic works your conf file should look something like this:
+
+```
+# redirect https to the frontend
+server {
+
+  server_name billy.flamberg.ch; # managed by Certbot
+
+	location / {
+		proxy_pass http://127.0.0.1:3000/;
+	}
+
+  listen [::]:443 ssl ipv6only=on; # managed by Certbot
+  listen 443 ssl; # managed by Certbot
+  # ssl stuff by Certbot...
+}
+
+# redirect api port to api
+server {
+    server_name billy.flamberg.ch; # managed by Certbot
+
+    location / {
+		proxy_pass http://127.0.0.1:5000/;
+
+		proxy_set_header Host $host:1921;
+		proxy_set_header X-Forwarded-Proto https;
+	}
+
+  listen [::]:1921 ssl ipv6only=on; # managed by Certbot
+  listen 1921 ssl; # managed by Certbot
+  # ssl stuff by Certbot...
+}
+```
+
+### Data
+
+All data stored in the database are volume mapped inside `./var/mysql`. If you like to remove all data you can simply delete this directory.
+
 #### Run with Docker-Compose
 
 Run: `docker compose --profile billy up`

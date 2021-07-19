@@ -36,8 +36,21 @@ dance = OAuth2ConsumerBlueprint(
     scope=['email', 'name', 'with_roles', 'api', 'openid']
 )
 
+
+class ReverseProxied(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        scheme = os.getenv('REDIRECT_URL_LOGIN').split(':')[0]
+        if scheme:
+            environ['wsgi.url_scheme'] = scheme
+        return self.app(environ, start_response)
+
+
 # init
 app = Flask(__name__)
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 app.secret_key = secrets.token_urlsafe(32)
 app.register_blueprint(dance, url_prefix=UNPROTECTED_PATH)
 CORS(app, origins=os.getenv('CLIENT_ORIGIN').split(

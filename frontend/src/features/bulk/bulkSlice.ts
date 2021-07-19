@@ -72,7 +72,9 @@ export const selectBulk = (bulk: Bulk): AppThunk => async (
 ) => {
     window.history.replaceState({}, "", bulk.name);
     dispatch(setSelectedBulk(bulk.name));
-    dispatch(fetchInvoicesByBulk(bulk));
+    if (bulk.status != 'draft') {
+        dispatch(fetchInvoicesByBulk(bulk));
+    }
 }
 
 export const fetchBulks = (): AppThunk => async (
