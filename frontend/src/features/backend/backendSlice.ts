@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { Http2ServerRequest } from "http2";
 import {RootState} from "../../app/store";
 
 export interface BackendState {
