@@ -4,8 +4,9 @@
 
 ### Setup
 
-For user authentication and to access hitobito the app needs to be registered as an oauth application on hitobito. The application needs all available scopes and a callback URL of the following form `API_SERVER/oauth/billy/authorized` (e.g. `http://localhost:5000/oauth/billy/authorized `).
-The configurations need to be stored in the `env/hitobito.env` file as follows:
+For user authentication and to access hitobito the app needs to be registered as an oauth application on hitobito. The application needs all available scopes and a callback URL (REDIRECT_URL_LOGIN) of the following form `API_SERVER/oauth/billy/authorized` (e.g. `http://localhost:5000/oauth/billy/authorized `).
+
+In `env/hitobito.env` the following variables need to be defined:
 
 ```text
 HITOBITO_OAUTH_CLIENT_ID=0FS55nbQMphZsDu1nBZQFnuIOclc6ORR7dYYEzvyZjU
@@ -15,10 +16,11 @@ HITOBITO_LANG=de -- one of: de, fr, it
 HITOBITO_GROUP=1 -- the group allowed to login to the application
 ```
 
-Furthermore you need to configure the api and frontend urls in `env/server.env`:
+In `env/server.env` the following variables need to be defined:
+
 ```
-CLIENT_ORIGIN=http://localhost:1921
-REDIRECT_URL_LOGIN=http://localhost:1921
+CLIENT_ORIGIN=http://localhost:3000
+REDIRECT_URL_LOGIN=http://localhost:3000
 ```
 
 To run locally you must add the following environment variable as well:
@@ -53,7 +55,7 @@ The following profiles are available:
 - backend: run the backend (db + server)
 - db: to only run the db
 - frontend: run only the frontend
-- migrations: to create new migrations (see documentation)
+- migrations: to create new **migrations** (see documentation)
 
 
 ## Resources

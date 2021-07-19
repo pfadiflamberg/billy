@@ -43,7 +43,7 @@ services:
     container_name: billy-frontend
     build: frontend
     ports:
-      - "1921:3000"
+      - "3000:80"
     profiles:
       - "billy"
       - "frontend"

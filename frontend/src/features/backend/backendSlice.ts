@@ -3,10 +3,12 @@ import {RootState} from "../../app/store";
 
 export interface BackendState {
     base: string;
+    tls: boolean;
 }
 
 const initialState: BackendState = {
-    base: 'https://api.billy.flamberg.ch'
+    base: '',
+    tls: false
 }
 
 export const backendSlice = createSlice({
@@ -26,6 +28,11 @@ export const backendSlice = createSlice({
             );
             if (isLocalhost) {
                 state.base = 'http://localhost:5000';
+            } else {
+                state.base = window.location.protocol + '//' + window.location.hostname + ':5000'
+                if (window.location.protocol === 'https:') {
+                    state.tls = true
+                }
             }
         }
     }
@@ -34,5 +41,6 @@ export const backendSlice = createSlice({
 export const { selfConfigure } = backendSlice.actions;
 
 export const selectBackendBase = (state: RootState) => new URL(state.backend.base);
+export const selectBackendTLS = (state: RootState) => state.backend.tls;
 
 export default backendSlice.reducer;
