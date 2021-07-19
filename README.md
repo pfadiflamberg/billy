@@ -82,6 +82,10 @@ server {
 }
 ```
 
+### Data
+
+All data stored in the database are volume mapped inside `./var/mysql`. If you like to remove all data you can simply delete this directory.
+
 #### Run with Docker-Compose
 
 Run: `docker compose --profile billy up`
