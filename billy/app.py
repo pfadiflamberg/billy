@@ -429,7 +429,7 @@ def handle_login(blueprint, token):
     if int(help.getenv('HITOBITO_GROUP')) not in role_ids:
         raise Exception(HTTPStatus.FORBIDDEN)
 
-    if not int(help.getenv('HITOBITO_ALLOWED_USERS')) == response.json()['id']:
+    if str(response.json()['id']) not in help.getenv('HITOBITO_ALLOWED_USERS').split(','):
         raise Exception(HTTPStatus.FORBIDDEN)
 
 
