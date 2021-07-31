@@ -10,7 +10,6 @@ from http import HTTPStatus
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, make_response, redirect, send_file, g, url_for, make_response
 from flask_marshmallow import Marshmallow
-from flask_dance.consumer import OAuth2ConsumerBlueprint, oauth_authorized
 from marshmallow import fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_field
 from flask_mail import Mail, email_dispatched
@@ -18,24 +17,11 @@ from smtplib import SMTPException
 from flask_cors import CORS
 import traceback
 import help
+import oauth
 
 load_dotenv('./env/hitobito.env')
 load_dotenv('./env/server.env')
 load_dotenv('./env/mail.env')
-
-HITOBITO_BASE = help.getenv('HITOBITO_HOST')
-UNPROTECTED_PATH = '/oauth'
-
-dance = OAuth2ConsumerBlueprint(
-    "billy", __name__,
-    client_id=help.getenv('HITOBITO_OAUTH_CLIENT_ID'),
-    client_secret=help.getenv('HITOBITO_OAUTH_SECRET'),
-    base_url=HITOBITO_BASE,
-    token_url="{base}/oauth/token".format(base=HITOBITO_BASE),
-    authorization_url="{base}/oauth/authorize".format(base=HITOBITO_BASE),
-    redirect_url=help.getenv('REDIRECT_URL_LOGIN'),
-    scope=['email', 'name', 'with_roles', 'openid']
-)
 
 
 class ReverseProxied(object):
@@ -53,7 +39,7 @@ class ReverseProxied(object):
 app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 app.secret_key = secrets.token_urlsafe(32)
-app.register_blueprint(dance, url_prefix=UNPROTECTED_PATH)
+app.register_blueprint(oauth.dance, url_prefix=oauth.UNPROTECTED_PATH)
 CORS(app, origins=help.getenv('CLIENT_ORIGIN').split(
     ','), supports_credentials=True)
 
@@ -402,9 +388,9 @@ def getMailBody(bulk_id, id):
     return res
 
 
-@app.route('{path}/login'.format(path=UNPROTECTED_PATH))
+@app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))
 def login():
-    if not dance.session.authorized:
+    if not oauth.dance.session.authorized:
         return redirect(url_for('billy.login'))
 
 
@@ -412,25 +398,11 @@ def login():
 def check():
     if request.method == 'OPTIONS':  # preflight requests
         return
-    if request.path.startswith(UNPROTECTED_PATH):
+    if request.path.startswith(oauth.UNPROTECTED_PATH):
         return
-    if not dance.session.authorized:
+    if not oauth.dance.session.authorized:
         return make_response(
             jsonify(code=HTTPStatus.UNAUTHORIZED, message=HTTPStatus.UNAUTHORIZED.phrase), HTTPStatus.UNAUTHORIZED)
-
-
-@oauth_authorized.connect
-def handle_login(blueprint, token):
-    # make sure the user is allowed to access the site before giving out a tokens
-    response = blueprint.session.get(
-        'oauth/profile', headers={'X-Scope': 'with_roles'})
-    role_ids = [x['group_id'] for x in response.json()['roles']]
-
-    if int(help.getenv('HITOBITO_GROUP')) not in role_ids:
-        raise Exception(HTTPStatus.FORBIDDEN)
-
-    if str(response.json()['id']) not in help.getenv('HITOBITO_ALLOWED_USERS').split(','):
-        raise Exception(HTTPStatus.FORBIDDEN)
 
 
 if __name__ == '__main__':
