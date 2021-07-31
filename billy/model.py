@@ -1,4 +1,6 @@
-import os
+import generate
+import hitobito
+import help
 import sqlalchemy as sa
 import datetime
 import stdnum.ch.esr as stdnum_esr
@@ -15,18 +17,13 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 load_dotenv('./env/mail.env')
-mailDefaultSender = os.getenv("MAIL_DEFAULT_SENDER")
+mailDefaultSender = help.getenv("MAIL_DEFAULT_SENDER")
 load_dotenv('./env/hitobito.env')
 
 load_dotenv('./env/bank.env')
-prefix = os.getenv('BANK_REF_PREFIX')
+prefix = help.getenv('BANK_REF_PREFIX')
 REF_NUM_LENGTH = 27
 
-try:
-    import hitobito
-    import generate
-except ImportError:
-    pass
 
 # Base for the SQL Schema
 
@@ -147,12 +144,17 @@ class Invoice(Base):
         self.recipient = recipient['id']
         self.recipient_name = recipient['name']
 
+        logger.info("recipient_id: {id}, recipient_name: {name}".format(
+            id=self.recipient, name=self.recipient_name))
+
         self.status = status
         self.status_message = status_message
         # generate reference number
-        end = str(bulk_id) + datestring + str(self.recipient)
+        postfix = str(bulk_id) + datestring + str(self.recipient)
+        logger.info("recipient_id: {id}, recipient_name: {name}, postfix: {postfix}".format(
+            id=self.recipient, name=self.recipient_name, postfix=postfix))
         no_check_digit = prefix + \
-            ("0"*(REF_NUM_LENGTH-len(prefix)-len(end)-1)) + end
+            ("0"*(REF_NUM_LENGTH-len(prefix)-len(postfix)-1)) + postfix
         self.esr = no_check_digit + stdnum_esr.calc_check_digit(no_check_digit)
 
     # Define a property for the name with the relative address
@@ -185,7 +187,7 @@ class Invoice(Base):
         if(self.bulk_invoice.status != 'issued'):
             raise NotIssued(self.bulk_invoice.status)
 
-        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=os.getenv("BANK_IBAN"), creditor={
+        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=help.getenv("BANK_IBAN"), creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
         }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getUser(), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
 

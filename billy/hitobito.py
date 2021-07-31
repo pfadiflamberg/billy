@@ -1,23 +1,51 @@
 import os
+import help
 import re
+import requests
+from requests.adapters import HTTPAdapter
 
 from dotenv import load_dotenv
-from app import dance
 
 load_dotenv('./env/hitobito.env')
 
 # we read them from the provided file
-hitobitoLang = os.getenv('HITOBITO_LANG')
+hitobitoLang = help.getenv('HITOBITO_LANG')
 
-session = dance.session
+# Use this - once db.scout.ch provides the API scope
+#################################################################
+# from app import dance
+
+# session = dance.session
+
+# def hitobito(request):
+#     assert(not request.startswith('/'))
+#     path = os.path.join(hitobitoLang, request) + '.json'
+#     response = session.get(url=path)
+#     response.raise_for_status()
+#     return response.json()
+#################################################################
+# instead of this:
+#################################################################
+
+headers = {
+    "Accept": "application/json",
+    "X-User-Email": help.getenv('HITOBITO_TOKEN_USER'),
+    "X-User-Token": help.getenv('HITOBITO_TOKEN'),
+}
+
+session = requests.Session()
+session.mount(help.getenv('HITOBITO_HOST'), HTTPAdapter(max_retries=5))
+session.headers.update(headers)
 
 
 def hitobito(request):
-    assert(not request.startswith('/'))
-    path = os.path.join(hitobitoLang, request) + '.json'
-    response = session.get(url=path)
+    url = os.path.join(help.getenv('HITOBITO_HOST'),
+                       hitobitoLang, request) + '.json'
+    response = session.get(url=url)
     response.raise_for_status()
     return response.json()
+
+#################################################################
 
 
 def getGroups(group_id):
