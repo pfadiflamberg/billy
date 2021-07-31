@@ -27,17 +27,17 @@ export function BulkView() {
                 {bulk &&
                     <div>
                         <Modal.Header closeButton>
-                            <Modal.Title>{bulk.display_name}</Modal.Title>
+                            <Modal.Title>{bulk.title}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             <Form>
                                 <Form.Group>
                                     <Form.Label >Title:</Form.Label>
                                     <Form.Control readOnly={readOnly}
-                                        name="display_name"
+                                        name="title"
                                         type="text"
-                                        onChange={e => (bulk) ? bulk.display_name = e.target.value : true}
-                                        defaultValue={bulk.display_name}>
+                                        onChange={e => (bulk) ? bulk.title = e.target.value : true}
+                                        defaultValue={bulk.title}>
                                     </Form.Control>
                                 </Form.Group>
                                 <Form.Group>
@@ -80,12 +80,6 @@ export function BulkView() {
                                     </Form.Control>
                                 </Form.Group>
                             </Form>
-                            {bulk && bulk.status !== 'draft' &&
-                                <div>
-                                    Invoices:
-                                    <InvoiceListView />
-                                </div>
-                            }
                             {readOnly &&
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                     <div className="actions">
@@ -105,6 +99,12 @@ export function BulkView() {
                                     <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(updateBulk(bulk)) : true} >
                                         Save
                                     </Button>
+                                </div>
+                            }
+                            {bulk && bulk.status !== 'draft' &&
+                                <div>
+                                    Invoices:
+                                    <InvoiceListView />
                                 </div>
                             }
                         </Modal.Body>

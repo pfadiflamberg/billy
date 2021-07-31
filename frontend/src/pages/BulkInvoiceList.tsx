@@ -32,7 +32,7 @@ export function BulkInvoiceList() {
                             <Row>
                                 <Col>
                                     <div className="BulkInvoiceListTitle">
-                                        {bulk.display_name}
+                                        {bulk.title}
                                     </div>
                                     <div className="BulkInvoiceListSubTitle">
                                         updated: {new Date(bulk.update_time).toLocaleString('de-DE')}

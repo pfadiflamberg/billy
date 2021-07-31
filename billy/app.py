@@ -100,7 +100,7 @@ class BulkInvoiceSchema(SQLAlchemySchema):
 
     # Define the relevant fields for JSON
     name = fields.Str()
-    display_name = fields.Str()
+    title = fields.Str()
     mailing_list = auto_field()
     issuing_date = auto_field()
     update_time = auto_field()
