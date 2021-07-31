@@ -1,4 +1,3 @@
-import os
 import db
 import secrets
 import zipfile
@@ -17,23 +16,25 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, SQLAlchemySchema, auto_
 from flask_mail import Mail, email_dispatched
 from smtplib import SMTPException
 from flask_cors import CORS
+import traceback
+import help
 
 load_dotenv('./env/hitobito.env')
 load_dotenv('./env/server.env')
 load_dotenv('./env/mail.env')
 
-HITOBITO_BASE = os.getenv('HITOBITO_HOST')
+HITOBITO_BASE = help.getenv('HITOBITO_HOST')
 UNPROTECTED_PATH = '/oauth'
 
 dance = OAuth2ConsumerBlueprint(
     "billy", __name__,
-    client_id=os.getenv('HITOBITO_OAUTH_CLIENT_ID'),
-    client_secret=os.getenv('HITOBITO_OAUTH_SECRET'),
+    client_id=help.getenv('HITOBITO_OAUTH_CLIENT_ID'),
+    client_secret=help.getenv('HITOBITO_OAUTH_SECRET'),
     base_url=HITOBITO_BASE,
     token_url="{base}/oauth/token".format(base=HITOBITO_BASE),
     authorization_url="{base}/oauth/authorize".format(base=HITOBITO_BASE),
-    redirect_url=os.getenv('REDIRECT_URL_LOGIN'),
-    scope=['email', 'name', 'with_roles', 'api', 'openid']
+    redirect_url=help.getenv('REDIRECT_URL_LOGIN'),
+    scope=['email', 'name', 'with_roles', 'openid']
 )
 
 
@@ -42,7 +43,7 @@ class ReverseProxied(object):
         self.app = app
 
     def __call__(self, environ, start_response):
-        scheme = os.getenv('REDIRECT_URL_LOGIN').split(':')[0]
+        scheme = help.getenv('REDIRECT_URL_LOGIN').split(':')[0]
         if scheme:
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
@@ -53,16 +54,16 @@ app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 app.secret_key = secrets.token_urlsafe(32)
 app.register_blueprint(dance, url_prefix=UNPROTECTED_PATH)
-CORS(app, origins=os.getenv('CLIENT_ORIGIN').split(
+CORS(app, origins=help.getenv('CLIENT_ORIGIN').split(
     ','), supports_credentials=True)
 
-mailServer = os.getenv('MAIL_SERVER')
-mailPort = os.getenv('MAIL_PORT')
-mailUseTLS = bool(int(os.getenv('MAIL_USE_TLS')))
-mailUseSSL = bool(int(os.getenv('MAIL_USE_SSL')))
-mailUsername = os.getenv('MAIL_USERNAME')
-mailDefaultSender = os.getenv('MAIL_DEFAULT_SENDER')
-mailPassword = os.getenv('MAIL_PASSWORD')
+mailServer = help.getenv('MAIL_SERVER')
+mailPort = help.getenv('MAIL_PORT')
+mailUseTLS = bool(int(help.getenv('MAIL_USE_TLS')))
+mailUseSSL = bool(int(help.getenv('MAIL_USE_SSL')))
+mailUsername = help.getenv('MAIL_USERNAME')
+mailDefaultSender = help.getenv('MAIL_DEFAULT_SENDER')
+mailPassword = help.getenv('MAIL_PASSWORD')
 
 app.config['MAIL_SERVER'] = mailServer
 app.config['MAIL_PORT'] = mailPort
@@ -139,7 +140,8 @@ def handle_exception_error(e):
     logger.info(e)
     if e == HTTPStatus.FORBIDDEN:
         return make_response(jsonify(code=HTTPStatus.FORBIDDEN, message=HTTPStatus.FORBIDDEN.phrase + ": User not allowed to use application."), HTTPStatus.FORBIDDEN)
-    return "What are you doing? You are not allowed to use this application."
+    logger.info(traceback.print_exc())
+    return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase + ": Error has been logged on the server."), HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
 @app.errorhandler(HTTPError)
@@ -271,6 +273,7 @@ def updateBulkInvoice(id):
 
 @app.route('/bulk/<id>:issue', methods=['POST'])
 def issueBulkInvoice(id):
+    logger.info('id: {id}'.format(id=id))
     session = g.session
 
     bi = db.getBulkInvoice(session, id)
@@ -423,7 +426,10 @@ def handle_login(blueprint, token):
         'oauth/profile', headers={'X-Scope': 'with_roles'})
     role_ids = [x['group_id'] for x in response.json()['roles']]
 
-    if int(os.getenv('HITOBITO_GROUP')) not in role_ids:
+    if int(help.getenv('HITOBITO_GROUP')) not in role_ids:
+        raise Exception(HTTPStatus.FORBIDDEN)
+
+    if not int(help.getenv('HITOBITO_ALLOWED_USERS')) == response.json()['id']:
         raise Exception(HTTPStatus.FORBIDDEN)
 
 

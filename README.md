@@ -14,6 +14,24 @@ HITOBITO_OAUTH_SECRET=U1WMfNWXMMsFUwNHqylu9r0HQK1Z0pxCnorJwLRvjWo
 HITOBITO_HOST=https://pbs.puzzle.ch
 HITOBITO_LANG=de -- one of: de, fr, it
 HITOBITO_GROUP=1 -- the group allowed to login to the application
+
+-- the following environment variables are required until pbs.scout.ch will support the API scope
+HITOBITO_ALLOWED_USERS=2 -- list of users allowed to access the application
+HITOBITO_TOKEN_USER=hussein_kohlmann@hitobito.example.com
+HITOBITO_TOKEN=Tu7aVJWyLYYMyCnZv2bz -- test system token
+```
+
+#### Hitobito API Token
+
+Until the `api` scope is supported by `db.scout.ch` a API access token and user needs to be provided. (Users are required as an additional level of security - as users don't use their own token).
+
+```
+curl -X POST --data "person[email]=<USERNAME>&person[password]=<PASSWORD>" https://db.scout.ch/de/users/sign_in.json
+```
+
+For the test system:
+```
+curl -X POST --data "person[email]=hussein_kohlmann@hitobito.example.com&person[password]=hito42bito" https://pbs.puzzle.ch/de/users/sign_in.json
 ```
 
 In `env/server.env` the following variables need to be defined:
@@ -126,10 +144,10 @@ POST /bulk
 
 Create a new bulk invoice.
 
-| Name  | Description | Example | Required |
-|-------|-------------|---------|----------|
-| title | A title for the bulk invoice. | Membership 2021        | yes |
-| mailing_list | The url of the mailing list whose subscribers are added as recipients. | https://db.scout.ch/de/groups/1147/mailing_lists/3518 | yes |
+| Name         | Description                                                            | Example                                               | Required |
+| ------------ | ---------------------------------------------------------------------- | ----------------------------------------------------- | -------- |
+| title        | A title for the bulk invoice.                                          | Membership 2021                                       | yes      |
+| mailing_list | The url of the mailing list whose subscribers are added as recipients. | https://db.scout.ch/de/groups/1147/mailing_lists/3518 | yes      |
 
 #### Get
 
@@ -161,10 +179,10 @@ This will return a list of bulk invoice resources:
 PUT /bulk/<id>
 ```
 
-| Name  | Description | Example | Required |
-|-------|-------------|---------|----------|
-| text_invoice | The text of the invoice. |         | no |
-| text_reminder | The text of the invoice. |         | no |
+| Name          | Description              | Example | Required |
+| ------------- | ------------------------ | ------- | -------- |
+| text_invoice  | The text of the invoice. |         | no       |
+| text_reminder | The text of the invoice. |         | no       |
 
 This will return the updated bulk invoice resource.
 
@@ -212,10 +230,10 @@ GET /bulk/<id>/invoice/<id>
 
 Update an indivual invoice.
 
-| Name  | Description | Example | Required |
-|-------|-------------|---------|----------|
-| status | Update the status of the invoice. | paid, annulled | no |
-| status_message | Add a status message. (should not be used yet) | | no |
+| Name           | Description                                    | Example        | Required |
+| -------------- | ---------------------------------------------- | -------------- | -------- |
+| status         | Update the status of the invoice.              | paid, annulled | no       |
+| status_message | Add a status message. (should not be used yet) |                | no       |
 
 #### List
 
@@ -268,6 +286,3 @@ revision script must be generated to upgrade the database accordingly. This is d
 
 4. Done. Rebuild the container with `docker-compose up --build`, and the new
    revision will automatically be applied before the first request is answered.
-
-## TODO:
-- [ ] make sure we don't run as root
