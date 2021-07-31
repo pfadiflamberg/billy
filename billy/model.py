@@ -75,12 +75,6 @@ class BulkInvoice(Base):
         self.create_time = datetime.datetime.utcnow()
         self.update_time = self.create_time
 
-    # Create a property for the display name
-
-    @hybrid_property
-    def display_name(self):
-        return self.title
-
     # Define the relationship between the BulkInvoice and its Invoices
     invoices = relationship("Invoice", back_populates="bulk_invoice")
 

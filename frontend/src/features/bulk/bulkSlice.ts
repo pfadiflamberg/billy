@@ -9,7 +9,7 @@ const API_PATH_BULK = 'bulk'
 
 export type Bulk = {
     name: string,
-    display_name: string,
+    title: string,
     status: string,
     update_time: string,
     mailing_list: string,
@@ -138,8 +138,8 @@ export const duplicateBulk = (org_bulk: Bulk): AppThunk => async (
 
     // create new title (if possible change year)
     var year: number = new Date().getFullYear()
-    var new_title = org_bulk.display_name.replace((year-1).toString(), year.toString());
-    if (new_title === org_bulk.display_name) {
+    var new_title = org_bulk.title.replace((year-1).toString(), year.toString());
+    if (new_title === org_bulk.title) {
         new_title += ' (copy)';
     }
 
@@ -153,7 +153,7 @@ export const duplicateBulk = (org_bulk: Bulk): AppThunk => async (
             var new_empty_bulk: Bulk = r as unknown as Bulk;
             var new_bulk = JSON.parse(JSON.stringify(org_bulk));
             new_bulk.name = new_empty_bulk.name;
-            new_bulk.display_name = new_empty_bulk.display_name;
+            new_bulk.title = new_empty_bulk.title;
             new_bulk.status = new_empty_bulk.status;
             request(new URL(org_bulk.name, BACKEND_BASE), 'PUT', new_bulk);
             dispatch(setBulk(new_bulk));

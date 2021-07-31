@@ -124,9 +124,9 @@ The following profiles are available:
 ```json
 {
   "name": "bulk/<id>",
+  "title" : "...",
   "issuing_date": "2020-06-023T00:00:00.000Z",
   "due_date": "2020-07-30T00:00:00.000Z",
-  "display_name" : "...",
   "text_invoice": "...",
   "text_reminder": "...",
 }
