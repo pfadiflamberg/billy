@@ -24,6 +24,7 @@ load_dotenv('./env/bank.env')
 prefix = help.getenv('BANK_REF_PREFIX')
 REF_NUM_LENGTH = 27
 
+IBAN = help.getenv("BANK_IBAN")
 
 # Base for the SQL Schema
 
@@ -187,7 +188,7 @@ class Invoice(Base):
         if(self.bulk_invoice.status != 'issued'):
             raise NotIssued(self.bulk_invoice.status)
 
-        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=help.getenv("BANK_IBAN"), creditor={
+        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
         }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getUser(), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
 

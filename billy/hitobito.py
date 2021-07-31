@@ -2,6 +2,7 @@ import os
 import help
 import re
 import requests
+from oauth import dance
 from requests.adapters import HTTPAdapter
 
 from dotenv import load_dotenv
@@ -13,9 +14,8 @@ hitobitoLang = help.getenv('HITOBITO_LANG')
 
 # Use this - once db.scout.ch provides the API scope
 #################################################################
-# from app import dance
 
-# session = dance.session
+# session = oauth.dance.session
 
 # def hitobito(request):
 #     assert(not request.startswith('/'))
@@ -84,26 +84,29 @@ def getMailingListRecipients(mailing_list_url):
     return [{'id': p['id'], 'name':getName(p)} for p in response['linked']['people']]
 
 
+def parseHitobitoPerson(person):
+    return {
+        'id': person['id'],
+        'salutation': getSalutation(person),
+        'name': getName(person),
+        'nickname': getNickname(person),
+        'shortname': getShortname(person),
+        'role': getRole(person),
+        'addr': getAddress(person),
+        'emails': getEmails(person),
+    }
+
+
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
     p = getHitobitoPerson(response)
-    person = {
-        'id': p['id'],
-        'salutation': getSalutation(p),
-        'name': getName(p),
-        'nickname': getNickname(p),
-        'shortname': getShortname(p),
-        'role': getRole(p),
-        'addr': getAddress(p),
-        'emails': getEmails(p),
-    }
-    return person
+    return parseHitobitoPerson(p)
 
 
 def getUser():
-    response = hitobito('oauth/profile')
-    person_id = response['id']
-    return getPerson(person_id)
+    session = dance.session
+    response = session.get('oauth/profile', headers={'X-Scope': 'with_roles'})
+    return parseHitobitoPerson(response.json())
 
 
 def getShortname(hitobitoPerson):
