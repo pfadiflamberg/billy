@@ -58,9 +58,9 @@ app.config['MAIL_USE_SSL'] = mailUseSSL
 app.config['MAIL_USERNAME'] = mailUsername
 app.config['MAIL_DEFAULT_SENDER'] = mailDefaultSender
 app.config['MAIL_PASSWORD'] = mailPassword
-app.config['MAIL_DEBUG'] = True
+app.config['MAIL_DEBUG'] = False
 # Must be true unless you actually want to send emails
-app.config['MAIL_SUPPRESS_SEND'] = True
+app.config['MAIL_SUPPRESS_SEND'] = False
 
 mail = Mail(app)
 
@@ -287,13 +287,16 @@ def closeBulkInvoice(id):
 @app.route('/bulk/<id>:send', methods=['POST'])
 def sendBulkInvoice(id):
     session = g.session
-
+    force = request.json.get('force_email', False)
     bi = db.getBulkInvoice(session, id)
+    not_sent = []
+    for success, result in bi.get_messages(force=force):
+        if success:
+            mail.send(result)
+        else:
+            not_sent.append(result)
 
-    for msg in bi.get_messages(True):
-        mail.send(msg)
-
-    res = jsonify(bulkInvoiceSchema.dump(bi))
+    res = jsonify(not_sent=bulkInvoicesSchema.dump(not_sent))
     session.commit()
     return res
 

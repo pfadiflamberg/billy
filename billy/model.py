@@ -97,9 +97,9 @@ class BulkInvoice(Base):
 
     def get_messages(self, generator=False):
         if generator:
-            return (invoice.get_message() for invoice in self.invoices)
+            return (invoice.get_message(force) for invoice in self.invoices)
         else:
-            return [invoice.get_message() for invoice in self.invoices]
+            return [invoice.get_message(force) for invoice in self.invoices]
 
     def generate(self, generator=False):
         if generator:
@@ -134,6 +134,8 @@ class Invoice(Base):
         sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
     update_time = sa.Column(
         sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
+    last_email_sent = sa.Column(
+        sa.TIMESTAMP, server_default=None, nullable=True)
 
     def __init__(self, recipient, datestring, bulk_id, status='pending', status_message="Status Message"):
         self.recipient = recipient['id']
@@ -188,14 +190,17 @@ class Invoice(Base):
 
         return string
 
-    def get_message(self):
-
-        msg = Message("Subject", bcc=[mailDefaultSender])
+    def get_message(self, force = False):
+        recently_sent = self.last_email_sent and datetime.datetime.utcnow() - self.last_email_sent < datetime.timedelta(days=30)
+        if recently_sent and not force:
+            return False, self
+        msg = Message(self.bulk_invoice.title , bcc=[mailDefaultSender])
         msg.add_recipient(hitobito.getPerson(self.recipient)['emails'][0])
 
         msg.body = self.mail_body
         msg.attach("Rechnung.pdf", "application/pdf", self.generate())
-        return msg
+        self.last_email_sent = datetime.datetime.utcnow()
+        return True, msg
 
     def __repr__(self):
         return "<Invoice(id=%s, status=%s, status_message=%s(...), recipient=%s, recipient_name=%s, bulk_invoice=%s, create_time=%s, update_time=%s)>" % (
