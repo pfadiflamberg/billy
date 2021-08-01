@@ -165,17 +165,33 @@ class Invoice(Base):
     def name(cls):
         return sa.func.concat("bulk/", cls.bulk_invoice_id, "/invoice/", cls.id)
 
+    def insert_variables(self, text):
+
+        hitobito_debtor = hitobito.getPerson(self.recipient)
+        hitobito_sender = hitobito.getUser()
+
+        return render_template_string(text,
+                                      title=self.bulk_invoice.title,
+                                      due_date=self.bulk_invoice.due_date.strftime(
+                                          '%d. %B %Y'),
+                                      name=hitobito_debtor['name'],
+                                      shortname=hitobito_debtor['shortname'],
+                                      salutation=hitobito_debtor['salutation'],
+                                      sender_name=hitobito_sender['name'],
+                                      sender_shortname=hitobito_sender['shortname'],
+                                      )
+
     @hybrid_property
     def mail_body(self):
-        return render_template_string(self.bulk_invoice.text_mail, salutation=hitobito.getPerson(self.recipient)['salutation'])
+        return self.insert_variables(self.bulk_invoice.text_mail)
 
     @hybrid_property
     def invoice_body(self):
-        return render_template_string(self.bulk_invoice.text_invoice, salutation=hitobito.getPerson(self.recipient)['salutation'])
+        return self.insert_variables(self.bulk_invoice.text_invoice)
 
     @hybrid_property
     def reminder_body(self):
-        return render_template_string(self.bulk_invoice.text_reminder, salutation=hitobito.getPerson(self.recipient)['salutation'])
+        return self.insert_variables(self.bulk_invoice.text_reminder)
 
     # Define the relationship between the Invoice and its BulkInvoice
     bulk_invoice = relationship("BulkInvoice", back_populates="invoices")
