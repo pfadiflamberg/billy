@@ -57,9 +57,9 @@ export function BulkInvoiceList() {
                                                 {bulk.status === 'draft' &&
                                                     <Dropdown.Item onClick={e => dispatch(selectBulk(bulk))}>Issue</Dropdown.Item>
                                                 }
-                                                <Dropdown.Item onClick={e => console.log('TODO')}>TODO: Send via Email</Dropdown.Item>
-                                                <Dropdown.Item onClick={e => dispatch(getBulkPDFs(bulk))}>Download PDFs</Dropdown.Item>
-                                                <Dropdown.Item onClick={e => console.log('TODO')}>TODO: Upload Payment Record</Dropdown.Item>
+                                                <Dropdown.Item disabled onClick={e => console.log('TODO')}>Send via Email (TODO)</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => dispatch(getBulkPDFs(bulk))}>Download PDFs (BUG)</Dropdown.Item>
+                                                <Dropdown.Item disabled onClick={e => console.log('TODO')}>Upload Payment Record (TODO)</Dropdown.Item>
                                                 <Dropdown.Divider />
                                                 <Dropdown.Item onClick={e => dispatch(selectBulk(bulk))}>View</Dropdown.Item>
                                                 <Dropdown.Item onClick={e => dispatch(duplicateBulk(bulk))}>Duplicate</Dropdown.Item>
