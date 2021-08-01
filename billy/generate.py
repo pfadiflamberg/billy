@@ -1,6 +1,7 @@
 import os
 import pdfkit
 import locale
+from loguru import logger
 
 from qrbill.bill import QRBill
 
@@ -8,8 +9,11 @@ from qrbill.bill import QRBill
 locale.setlocale(locale.LC_TIME, "de_CH.UTF-8")
 
 TMP_SVG_FILE = 'bill.svg'
-INVOICE_TEMPLATE = 'resources/html/invoice.html'
+INVOICE_TEMPLATE_FILE_PATH = 'resources/html/invoice.html'
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+template_file = open(INVOICE_TEMPLATE_FILE_PATH)
+INVOICE_TEMPLATE = template_file.read()
 
 
 def formatSenderAddress(address):
@@ -20,8 +24,7 @@ def formatSenderAddress(address):
 
 def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_sender, ref, date, due_date, amount=None):
 
-    template_file = open(INVOICE_TEMPLATE)
-    invoice = template_file.read()
+    invoice = INVOICE_TEMPLATE
 
     # fix relative links (note: we expect all link to have a ../.. prefix)
     invoice = invoice.replace('../..', BASE_PATH)
