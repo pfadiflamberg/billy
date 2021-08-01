@@ -96,12 +96,21 @@ class BulkInvoice(Base):
         self.status = 'closed'
 
     def get_messages(self, generator=False, force=False):
+        self.prepare()
+
         if generator:
             return (invoice.get_message(force) for invoice in self.invoices)
         else:
             return [invoice.get_message(force) for invoice in self.invoices]
 
+    def prepare(self):
+        self.people_list, self.id_map = hitobito.getMailingListWithMap(self.mailing_list)
+        self.user = hitobito.getUser()
+
+
     def generate(self, generator=False):
+        self.prepare()
+
         if generator:
             return (invoice.generate() for invoice in self.invoices)
         else:
@@ -167,8 +176,8 @@ class Invoice(Base):
 
     def insert_variables(self, text):
 
-        hitobito_debtor = hitobito.getPerson(self.recipient)
-        hitobito_sender = hitobito.getUser()
+        hitobito_debtor = hitobito.getMailingListPerson(self.bulk_invoice.people_list, self.recipient, self.bulk_invoice.id_map)
+        hitobito_sender = self.bulk_invoice.user
 
         return render_template_string(text,
                                       title=self.bulk_invoice.title,
@@ -200,21 +209,24 @@ class Invoice(Base):
         if(self.bulk_invoice.status != 'issued'):
             raise NotIssued(self.bulk_invoice.status)
 
+        debtor = hitobito.getMailingListPerson(people_list=self.bulk_invoice.people_list, person_id=self.recipient, id_map=self.bulk_invoice.id_map)
+
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
-        }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getUser(), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
+        }, ref=self.esr, hitobito_debtor=debtor, hitobito_sender=self.bulk_invoice.user, date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
 
-        return string
+        return debtor['name'], string
 
     def get_message(self, force = False):
         recently_sent = self.last_email_sent and datetime.datetime.utcnow() - self.last_email_sent < datetime.timedelta(days=30)
         if recently_sent and not force:
             return False, self
         msg = Message(self.bulk_invoice.title , bcc=[mailDefaultSender])
-        msg.add_recipient(hitobito.getPerson(self.recipient)['emails'][0])
+        msg.add_recipient(hitobito.getMailingListPerson(people_list=self.bulk_invoice.people_list, person_id=self.recipient, id_map=self.bulk_invoice.id_map)['emails'][0])
 
         msg.body = self.mail_body
-        msg.attach("Rechnung.pdf", "application/pdf", self.generate())
+        _, string = self.generate()
+        msg.attach("Rechnung.pdf", "application/pdf", string)
         self.last_email_sent = datetime.datetime.utcnow()
         return True, msg
 

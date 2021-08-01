@@ -309,10 +309,9 @@ def generateBulkInvoice(id):
 
     data = io.BytesIO()
     with zipfile.ZipFile(data, mode='w') as z:
-        for invoice in bi.invoices:
-            name = invoice.recipient_name + ".pdf"
-            pdf = invoice.generate()
-            z.writestr(name, pdf)
+        for name, string in bi.generate():
+            name = name + ".pdf"
+            z.writestr(name, string)
     data.seek(0)
 
     return send_file(
@@ -369,8 +368,8 @@ def generateInvoice(bulk_id, id):
     session = g.session
 
     invoice = db.getInvoice(session, id)
-
-    binary_pdf = invoice.generate()
+    invoice.bulk_invoice.prepare()
+    name, binary_pdf = invoice.generate()
     response = make_response(binary_pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = \
@@ -386,6 +385,9 @@ def sendInvoice(bulk_id, id):
     force = request.json['force_email']
 
     invoice = db.getInvoice(session, id)
+
+    invoice.bulk_invoice.prepare()
+
     success, result = invoice.get_message(force=force)
     if success:
         mail.send(result)
