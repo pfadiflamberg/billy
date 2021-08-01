@@ -16,6 +16,7 @@ export type Bulk = {
     text_mail: string,
     text_invoice: string,
     text_reminder: string,
+    due_date: string,
 }
 
 export type BulkDict = {
@@ -27,6 +28,8 @@ export interface BulkState {
     selected: string,
     showCreateBulkView: boolean,
     showUpdateBulkView: boolean,
+    showEmailPreviewBulkView: boolean,
+    sendingEmail: boolean,
 }
 
 const initialState: BulkState = {
@@ -34,6 +37,8 @@ const initialState: BulkState = {
     selected: '',
     showCreateBulkView: false,
     showUpdateBulkView: false,
+    showEmailPreviewBulkView: false,
+    sendingEmail: false,
 }
 
 export const bulkSlice = createSlice({
@@ -62,10 +67,16 @@ export const bulkSlice = createSlice({
         showUpdateBulkView: (state, { payload }: PayloadAction<boolean>) => {
             state.showUpdateBulkView = payload;
         },
+        showEmailPreviewBulkView: (state, { payload }: PayloadAction<boolean>) => {
+            state.showEmailPreviewBulkView = payload;
+        },
+        setSendingEmail: (state, { payload }: PayloadAction<boolean>) => {
+            state.sendingEmail = payload;
+        }
     }
 })
 
-const { setBulks, setBulk, setSelectedBulk, deselectBulk, showCreateBulkView, showUpdateBulkView } = bulkSlice.actions;
+const { setBulks, setBulk, setSelectedBulk, deselectBulk, showCreateBulkView, showUpdateBulkView, showEmailPreviewBulkView, setSendingEmail } = bulkSlice.actions;
 
 export const selectBulk = (bulk: Bulk): AppThunk => async (
     dispatch,
@@ -178,6 +189,22 @@ export const issueBulk = (bulk: Bulk): AppThunk => async (
         .catch(e => dispatch(handleError(e)));
 }
 
+export const sendBulk = (bulk: Bulk): AppThunk => async (
+    dispatch,
+    getState,
+) => {
+
+    const BACKEND_BASE = selectBackendBase(getState());
+    dispatch(setSendingEmail(true));
+
+    request(new URL(bulk.name + ":send", BACKEND_BASE), 'POST')
+        .then(r => {
+            dispatch(showEmailPreviewBulkView(false));
+        })
+        .catch(e => dispatch(handleError(e)))
+        .finally(() => dispatch(setSendingEmail(false)));
+}
+
 export const getBulkPDFs = (bulk: Bulk): AppThunk => async (
     dispatch,
     getState,
@@ -196,7 +223,9 @@ export const selectBulks = (state: RootState) => state.bulk.items;
 export const selectSelectedBulk = (state: RootState) => state.bulk.selected;
 export const selectShowCreateBulkView = (state: RootState) => state.bulk.showCreateBulkView;
 export const selectShowUpdateBulkView = (state: RootState) => state.bulk.showUpdateBulkView;
+export const selectEmailPreviewBulkView = (state: RootState) => state.bulk.showEmailPreviewBulkView;
+export const selectIsSendingBulk = (state: RootState) => state.bulk.sendingEmail;
 
-export { showCreateBulkView, showUpdateBulkView, deselectBulk };
+export { showCreateBulkView, showUpdateBulkView, showEmailPreviewBulkView, deselectBulk };
 
 export default bulkSlice.reducer;
