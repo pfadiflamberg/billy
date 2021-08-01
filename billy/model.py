@@ -168,16 +168,16 @@ class Invoice(Base):
         hitobito_debtor = hitobito.getPerson(self.recipient)
         hitobito_sender = hitobito.getUser()
 
-        render_template_string(text,
-                               title=self.bulk_invoice.title,
-                               due_date=self.bulk_invoice.due_date.strftime(
-                                   '%d. %B %Y'),
-                               name=hitobito_debtor['name'],
-                               shortname=hitobito_debtor['shortname'],
-                               salutation=hitobito_debtor['salutation'],
-                               sender_name=hitobito_sender['name'],
-                               sender_shortname=hitobito_sender['shortname'],
-                               )
+        return render_template_string(text,
+                                      title=self.bulk_invoice.title,
+                                      due_date=self.bulk_invoice.due_date.strftime(
+                                          '%d. %B %Y'),
+                                      name=hitobito_debtor['name'],
+                                      shortname=hitobito_debtor['shortname'],
+                                      salutation=hitobito_debtor['salutation'],
+                                      sender_name=hitobito_sender['name'],
+                                      sender_shortname=hitobito_sender['shortname'],
+                                      )
 
     @hybrid_property
     def mail_body(self):
