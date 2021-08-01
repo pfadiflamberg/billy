@@ -230,8 +230,8 @@ def updateBulkInvoice(id):
 
     # Get BulkInvoice
     bi = db.getBulkInvoice(session, id)
-    if bi.status == 'closed':
-        return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message="Closed bulks can no longer be updated."), HTTPStatus.METHOD_NOT_ALLOWED)
+    if bi.status != 'issued':
+        return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message="A bulks can no longer be updated once it has been issued."), HTTPStatus.METHOD_NOT_ALLOWED)
 
     # Get json paramters, default to old if not supplied
     title = request.json.get('title', bi.title)
