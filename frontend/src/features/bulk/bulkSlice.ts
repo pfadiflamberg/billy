@@ -166,7 +166,7 @@ export const duplicateBulk = (org_bulk: Bulk): AppThunk => async (
             new_bulk.name = new_empty_bulk.name;
             new_bulk.title = new_empty_bulk.title;
             new_bulk.status = new_empty_bulk.status;
-            request(new URL(org_bulk.name, BACKEND_BASE), 'PUT', new_bulk);
+            request(new URL(new_empty_bulk.name, BACKEND_BASE), 'PUT', new_bulk);
             dispatch(setBulk(new_bulk));
         })
         .catch(e => dispatch(handleError(e)));
