@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { Button, Form, Modal } from 'react-bootstrap';
-import { selectShowUpdateBulkView, selectSelectedBulk, showUpdateBulkView, deselectBulk, selectBulks, updateBulk, Bulk, issueBulk } from "./bulkSlice";
+import { selectShowUpdateBulkView, selectSelectedBulk, selectEmailPreviewBulkView, showUpdateBulkView, showEmailPreviewBulkView, deselectBulk, selectBulks, updateBulk, Bulk, issueBulk, sendBulk, selectIsSendingBulk } from "./bulkSlice";
+import { selectInvoices } from "../invoice/invoiceSlice";
 import { InvoiceListView } from "../invoice/invoiceListView";
 
 export function BulkView() {
@@ -10,6 +11,9 @@ export function BulkView() {
     const bulks = useAppSelector(selectBulks);
     const selected = useAppSelector(selectSelectedBulk);
     const update = useAppSelector(selectShowUpdateBulkView);
+    const emailPreview = useAppSelector(selectEmailPreviewBulkView);
+    const invoices = useAppSelector(selectInvoices);
+    const isSendingEmail = useAppSelector(selectIsSendingBulk);
 
     const readOnly = !update;
     const orgBulk = bulks[selected];
@@ -18,9 +22,37 @@ export function BulkView() {
         bulk = JSON.parse(JSON.stringify(orgBulk));
     }
 
+    function DaysTillDue(bulk: Bulk) {
+        var due_date = new Date(bulk.due_date);
+        var date_now = new Date();
+        var diff = Math.abs(due_date.getTime() - date_now.getTime());
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
     return (
         <div>
-            <Modal show={bulk} onHide={() => {
+            <Modal show={emailPreview} onHide={() => {
+                dispatch(showEmailPreviewBulkView(false));
+            }}>
+                {bulk &&
+                    <div>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Send as Email.</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            Sending <em>{bulk.title}</em> to {Object.entries(invoices).filter(([k, b]) => b.status === 'pending').length}/{Object.keys(invoices).length} pending recipients due in {DaysTillDue(bulk)} days.
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk)) : true} >
+                                    {isSendingEmail ? 'Sending...' : 'Send'}
+                                </Button>
+                            </div>
+                        </Modal.Footer>
+                    </div>
+                }
+            </Modal>
+            <Modal show={bulk !== undefined} onHide={() => {
                 dispatch(showUpdateBulkView(false));
                 dispatch(deselectBulk())
             }} size="lg">
@@ -32,15 +64,6 @@ export function BulkView() {
                         <Modal.Body>
                             <Form>
                                 <Form.Group>
-                                    <Form.Label >Title:</Form.Label>
-                                    <Form.Control readOnly={readOnly}
-                                        name="title"
-                                        type="text"
-                                        onChange={e => (bulk) ? bulk.title = e.target.value : true}
-                                        defaultValue={bulk.title}>
-                                    </Form.Control>
-                                </Form.Group>
-                                <Form.Group>
                                     <Form.Label>Mailing List:</Form.Label>
                                     <Form.Control readOnly={readOnly}
                                         name="mailing_list"
@@ -50,7 +73,27 @@ export function BulkView() {
                                     </Form.Control>
                                 </Form.Group>
                                 <Form.Group>
-                                    <Form.Label>Mail:</Form.Label>
+                                    <Form.Label >Title:</Form.Label>
+                                    <Form.Control readOnly={readOnly}
+                                        name="title"
+                                        type="text"
+                                        onChange={e => (bulk) ? bulk.title = e.target.value : true}
+                                        defaultValue={bulk.title}>
+                                    </Form.Control>
+                                </Form.Group>
+                                {bulk && bulk.status !== 'draft' &&
+                                    <Form.Group>
+                                        <Form.Label>Due Date:</Form.Label>
+                                        <Form.Control readOnly={true}
+                                            name="due_date"
+                                            type="date"
+                                            // onChange={e => (bulk) ? bulk.due_date = new Date(e.target.value).toISOString() : true}
+                                            defaultValue={new Date(bulk.due_date).toISOString().split('T')[0]}>
+                                        </Form.Control>
+                                    </Form.Group>
+                                }
+                                <Form.Group>
+                                    <Form.Label>Email:</Form.Label>
                                     <Form.Control readOnly={readOnly} as="textarea"
                                         name="text_mail"
                                         type="text"
@@ -83,12 +126,19 @@ export function BulkView() {
                             {readOnly &&
                                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                     <div className="actions">
-                                        <Button variant="secondary" type="submit" onClick={() => dispatch(showUpdateBulkView(true))}>
-                                            Edit
-                                        </Button>
                                         {bulk && bulk.status === 'draft' &&
-                                            <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(issueBulk(bulk)) : true}>
-                                                Issue
+                                            <div>
+                                                <Button variant="secondary" type="submit" onClick={() => dispatch(showUpdateBulkView(true))}>
+                                                    Edit
+                                                </Button>
+                                                <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(issueBulk(bulk)) : true}>
+                                                    Issue
+                                                </Button>
+                                            </div>
+                                        }
+                                        {bulk && bulk.status === 'issued' &&
+                                            <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(showEmailPreviewBulkView(true)) : true}>
+                                                Send as Email
                                             </Button>
                                         }
                                     </div>
