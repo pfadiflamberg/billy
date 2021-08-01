@@ -44,11 +44,22 @@
       .text {
         position: absolute;
         left: 20pt;
-        top: 180pt;
-        width: 400pt;
+        top: 170pt;
+        width: 410pt;
         font-size: 10px;
         text-align: justify;
         line-height: 1.2;
+      }
+      .title {
+        padding-bottom: 10px;
+      }
+      .nl {
+        display: block;
+        margin-bottom: 0.5em;
+      }
+      .nl2 {
+        display: block;
+        margin-bottom: 1em;
       }
     </style>
   </head>
@@ -77,7 +88,9 @@
       </div>
     </div>
     <div class="text">
-      <div style="font-size: 14px; font-weight: bold">{{ title }}</div>
+      <div class="title" style="font-size: 14px; font-weight: bold">
+        {{ title }}
+      </div>
       {{ text }}
     </div>
   </body>

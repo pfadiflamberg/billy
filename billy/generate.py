@@ -53,7 +53,9 @@ def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_se
     ))
     invoice = invoice.replace('{{ title }}', title)
     invoice = invoice.replace(
-        '{{ text }}', text_body.replace('\n', '<br><br>'))
+        '{{ text }}', text_body
+        .replace('\n\n', '<span class="nl2"></span>')
+        .replace('\n', '<span class="nl"></span>'))
 
     # generate qr bill as svg
     bill = QRBill(
