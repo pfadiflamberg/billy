@@ -287,7 +287,7 @@ def closeBulkInvoice(id):
 @app.route('/bulk/<id>:send', methods=['POST'])
 def sendBulkInvoice(id):
     session = g.session
-    force = request['force_email']
+    force = request.json['force_email']
     bi = db.getBulkInvoice(session, id)
     not_sent = []
     for success, result in bi.get_messages(force=force):
