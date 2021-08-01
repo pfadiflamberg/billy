@@ -55,10 +55,10 @@ export function InvoiceListView() {
                                                 variant={badgeVariantForStatus(invoice.status)}
                                                 onClick={e => e.stopPropagation()}
                                             >
-                                                <Dropdown.Item onClick={e => console.log('TODO')}>Send Mail</Dropdown.Item>
                                                 <Dropdown.Item onClick={e => window.open(BACKEND_BASE + invoice.name + '.pdf')}>Get PDF</Dropdown.Item>
+                                                <Dropdown.Item disabled onClick={e => console.log('TODO')}>Send as Email (TODO)</Dropdown.Item>
                                                 <Dropdown.Divider />
-                                                <Dropdown.Item onClick={e => console.log('TODO')}>Annul</Dropdown.Item>
+                                                <Dropdown.Item disabled onClick={e => console.log('TODO')}>Annul (TODO)</Dropdown.Item>
                                             </DropdownButton>
                                         </ButtonGroup>
                                     </div>
