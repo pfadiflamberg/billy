@@ -72,7 +72,7 @@ export const selectBulk = (bulk: Bulk): AppThunk => async (
 ) => {
     window.history.replaceState({}, "", bulk.name);
     dispatch(setSelectedBulk(bulk.name));
-    if (bulk.status != 'draft') {
+    if (bulk.status !== 'draft') {
         dispatch(fetchInvoicesByBulk(bulk));
     }
 }
@@ -187,7 +187,7 @@ export const getBulkPDFs = (bulk: Bulk): AppThunk => async (
 
     request(new URL(bulk.name + ":generate", BACKEND_BASE), 'POST')
         .then(r => {
-
+            console.log("hello");
         })
         .catch(e => dispatch(handleError(e)));
 }
