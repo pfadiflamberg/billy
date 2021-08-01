@@ -203,8 +203,20 @@ POST /bulk/<id>:close
 ```
 POST /bulk/<id>:send
 ```
+| Name          | Description              | Example | Required |
+| ------------- | ------------------------ | ------- | -------- |
+| force_send  | Force-send all emails even if they have been recently sent already. Boolean value, no quotes. |  true       | yes       |
 
-This will send all pending invoices of this bulk via email.
+
+This will send all pending invoices of this bulk via email and return a list of the invoices not sent because they had recently been sent already.
+
+```json
+{
+  "not_sent": [
+    ...
+  ]
+}
+```
 
 #### Generate
 ****
@@ -248,6 +260,23 @@ This will return a list of invoice resources that are associated with a bulk:
   "items": [
     ...
   ]
+}
+```
+#### Send
+
+```
+POST /bulk/<id>/invoice/<id>:send
+```
+| Name          | Description              | Example | Required |
+| ------------- | ------------------------ | ------- | -------- |
+| force_send  | Force-send the email even if it has been recently sent already. Boolean value, no quotes. |  true       | yes       |
+
+
+This will attempt to send the invoice as an email and return a value indicating if the message was sent.
+
+```json
+{
+  "sent": true
 }
 ```
 
