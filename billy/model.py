@@ -95,7 +95,7 @@ class BulkInvoice(Base):
         # TODO: add functionality
         self.status = 'closed'
 
-    def get_messages(self, generator=False):
+    def get_messages(self, generator=False, force=False):
         if generator:
             return (invoice.get_message(force) for invoice in self.invoices)
         else:
@@ -183,7 +183,7 @@ class Invoice(Base):
 
     @hybrid_property
     def mail_body(self):
-        return self.insert_variables(self.bulk_invoice.text_mail)
+        return self.insert_variables(self.bulk_invoice.text_mail + "\n\n")
 
     @hybrid_property
     def invoice_body(self):

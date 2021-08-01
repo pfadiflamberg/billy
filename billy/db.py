@@ -16,7 +16,7 @@ name = help.getenv('MYSQL_DB')
 engine_string = "mysql+mysqldb://%s:%s@%s:%s/%s?charset=utf8mb4" % (
     username, password, address, port, name)
 engine = create_engine(engine_string, echo=False,
-                       encoding='utf8', convert_unicode=True)
+                        convert_unicode=True)
 
 # Create a sessionmaker
 Session = sessionmaker(bind=engine)
