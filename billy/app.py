@@ -287,16 +287,15 @@ def closeBulkInvoice(id):
 @app.route('/bulk/<id>:send', methods=['POST'])
 def sendBulkInvoice(id):
     session = g.session
-    force = request.json['force_email']
+    force = bool(request.args.get('force', 0, type=int))
     bi = db.getBulkInvoice(session, id)
-    not_sent = []
+    sent_count = 0
     for success, result in bi.get_messages(force=force):
         if success:
             mail.send(result)
-        else:
-            not_sent.append(result)
+            sent_count += 1
 
-    res = jsonify(not_sent=bulkInvoicesSchema.dump(not_sent))
+    res = jsonify(sent_count=sent_count)
     session.commit()
     return res
 
@@ -382,7 +381,7 @@ def generateInvoice(bulk_id, id):
 def sendInvoice(bulk_id, id):
     session = g.session
 
-    force = request.json['force_email']
+    force = bool(request.args.get('force', 0, type=int))
 
     invoice = db.getInvoice(session, id)
 
@@ -391,7 +390,7 @@ def sendInvoice(bulk_id, id):
     success, result = invoice.get_message(force=force)
     if success:
         mail.send(result)
-    return(jsonify(sent=success))
+    return(jsonify(sent_time=invoice.last_email_sent.isoformat()))
 
 
 @app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))

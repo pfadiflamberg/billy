@@ -83,8 +83,8 @@ class BulkInvoice(Base):
         # TODO: add functionality
         recipients = hitobito.getMailingListRecipients(self.mailing_list)
         logger.debug(recipients)
-        self.invoices = [Invoice(recipient, self.create_time.strftime(
-            "%Y%m%d"), self.id) for recipient in recipients]
+        self.invoices = [Invoice(hitobito.parseMailingListPerson(recipient), self.create_time.strftime(
+            "%Y%m%d"), self.id) for recipient in recipients.values()]
 
         self.issuing_date = datetime.datetime.utcnow()
         self.due_date = self.issuing_date + datetime.timedelta(days=30)
@@ -104,7 +104,7 @@ class BulkInvoice(Base):
             return [invoice.get_message(force) for invoice in self.invoices]
 
     def prepare(self):
-        self.people_list, self.id_map = hitobito.getMailingListWithMap(self.mailing_list)
+        self.people_list = hitobito.getMailingListRecipients(self.mailing_list)
         self.user = hitobito.getUser()
 
 
@@ -176,7 +176,7 @@ class Invoice(Base):
 
     def insert_variables(self, text):
 
-        hitobito_debtor = hitobito.getMailingListPerson(self.bulk_invoice.people_list, self.recipient, self.bulk_invoice.id_map)
+        hitobito_debtor = hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])
         hitobito_sender = self.bulk_invoice.user
 
         return render_template_string(text,
@@ -192,7 +192,7 @@ class Invoice(Base):
 
     @hybrid_property
     def mail_body(self):
-        return self.insert_variables(self.bulk_invoice.text_mail + "\n\n")
+        return self.insert_variables(self.bulk_invoice.text_mail + "\n\n") # new line for proper rendering in Apple Mail
 
     @hybrid_property
     def invoice_body(self):
@@ -209,7 +209,7 @@ class Invoice(Base):
         if(self.bulk_invoice.status != 'issued'):
             raise NotIssued(self.bulk_invoice.status)
 
-        debtor = hitobito.getMailingListPerson(people_list=self.bulk_invoice.people_list, person_id=self.recipient, id_map=self.bulk_invoice.id_map)
+        debtor = hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])
 
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
@@ -222,7 +222,7 @@ class Invoice(Base):
         if recently_sent and not force:
             return False, self
         msg = Message(self.bulk_invoice.title , bcc=[mailDefaultSender])
-        msg.add_recipient(hitobito.getMailingListPerson(people_list=self.bulk_invoice.people_list, person_id=self.recipient, id_map=self.bulk_invoice.id_map)['emails'][0])
+        msg.add_recipient(hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])['emails'][0])
 
         msg.body = self.mail_body
         _, string = self.generate()
