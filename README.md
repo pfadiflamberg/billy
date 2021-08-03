@@ -203,18 +203,16 @@ POST /bulk/<id>:close
 ```
 POST /bulk/<id>:send
 ```
-| Name          | Description              | Example | Required |
+| Query Name          | Description              | Example | Required |
 | ------------- | ------------------------ | ------- | -------- |
-| force_send  | Force-send all emails even if they have been recently sent already. Boolean value, no quotes. |  true       | yes       |
+| force  | Force-send all emails even if they have been recently sent already. 1 or 0. |  0       | no       |
 
 
-This will send all pending invoices of this bulk via email and return a list of the invoices not sent because they had recently been sent already.
+This will send all pending invoices of this bulk via email and return the amount of invoices that have been dispatched.
 
 ```json
 {
-  "not_sent": [
-    ...
-  ]
+  "sent_count": 0
 }
 ```
 
@@ -267,16 +265,16 @@ This will return a list of invoice resources that are associated with a bulk:
 ```
 POST /bulk/<id>/invoice/<id>:send
 ```
-| Name          | Description              | Example | Required |
+| Query Name          | Description              | Example | Required |
 | ------------- | ------------------------ | ------- | -------- |
-| force_send  | Force-send the email even if it has been recently sent already. Boolean value, no quotes. |  true       | yes       |
+| force  | Force-send the email even if it has been recently sent already. 1 or 0. |  1       | no       |
 
 
-This will attempt to send the invoice as an email and return a value indicating if the message was sent.
+This will attempt to send the invoice as an email and return the potentially updated timestamp of when this invoice was last dispatched.
 
 ```json
 {
-  "sent": true
+  "sent_time": "2021-08-01T16:03:58"
 }
 ```
 
