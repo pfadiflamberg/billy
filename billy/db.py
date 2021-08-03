@@ -1,4 +1,4 @@
-import help
+import env
 
 from alembic import command
 from alembic.config import Config
@@ -7,16 +7,16 @@ from sqlalchemy.orm import sessionmaker
 from model import BulkInvoice, Invoice
 # Use the environment variables to create the engine string
 
-username = help.getenv('MYSQL_USER')
-password = help.getenv('MYSQL_PW')
-address = help.getenv('MYSQL_SERVER')
-port = help.getenv('MYSQL_PORT')
-name = help.getenv('MYSQL_DB')
+username = env.get('MYSQL_USER')
+password = env.get('MYSQL_PW')
+address = env.get('MYSQL_SERVER')
+port = env.get('MYSQL_PORT')
+name = env.get('MYSQL_DB')
 
 engine_string = "mysql+mysqldb://%s:%s@%s:%s/%s?charset=utf8mb4" % (
     username, password, address, port, name)
 engine = create_engine(engine_string, echo=False,
-                        convert_unicode=True)
+                       convert_unicode=True)
 
 # Create a sessionmaker
 Session = sessionmaker(bind=engine)
