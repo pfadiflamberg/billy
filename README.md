@@ -203,8 +203,18 @@ POST /bulk/<id>:close
 ```
 POST /bulk/<id>:send
 ```
+| Query Name          | Description              | Example | Required |
+| ------------- | ------------------------ | ------- | -------- |
+| force  | Force-send all emails even if they have been recently sent already. 1 or 0. |  0       | no       |
 
-This will send all pending invoices of this bulk via email.
+
+This will send all pending invoices of this bulk via email and return the amount of invoices that have been dispatched.
+
+```json
+{
+  "sent_count": 0
+}
+```
 
 #### Generate
 ****
@@ -248,6 +258,23 @@ This will return a list of invoice resources that are associated with a bulk:
   "items": [
     ...
   ]
+}
+```
+#### Send
+
+```
+POST /bulk/<id>/invoice/<id>:send
+```
+| Query Name          | Description              | Example | Required |
+| ------------- | ------------------------ | ------- | -------- |
+| force  | Force-send the email even if it has been recently sent already. 1 or 0. |  1       | no       |
+
+
+This will attempt to send the invoice as an email and return the potentially updated timestamp of when this invoice was last dispatched.
+
+```json
+{
+  "sent_time": "2021-08-01T16:03:58"
 }
 ```
 

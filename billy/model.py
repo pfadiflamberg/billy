@@ -1,9 +1,10 @@
 import generate
 import hitobito
-import help
 import sqlalchemy as sa
 import datetime
 import stdnum.ch.esr as stdnum_esr
+import env
+import error
 
 from sqlalchemy.dialects.mysql import ENUM
 from sqlalchemy.orm import relationship
@@ -16,15 +17,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-load_dotenv('./env/mail.env')
-mailDefaultSender = help.getenv("MAIL_DEFAULT_SENDER")
-load_dotenv('./env/hitobito.env')
-
-load_dotenv('./env/bank.env')
-prefix = help.getenv('BANK_REF_PREFIX')
 REF_NUM_LENGTH = 27
-
-IBAN = help.getenv("BANK_IBAN")
 
 # Base for the SQL Schema
 
@@ -83,8 +76,8 @@ class BulkInvoice(Base):
         # TODO: add functionality
         recipients = hitobito.getMailingListRecipients(self.mailing_list)
         logger.debug(recipients)
-        self.invoices = [Invoice(recipient, self.create_time.strftime(
-            "%Y%m%d"), self.id) for recipient in recipients]
+        self.invoices = [Invoice(hitobito.parseMailingListPerson(recipient), self.create_time.strftime(
+            "%Y%m%d"), self.id) for recipient in recipients.values()]
 
         self.issuing_date = datetime.datetime.utcnow()
         self.due_date = self.issuing_date + datetime.timedelta(days=30)
@@ -95,13 +88,32 @@ class BulkInvoice(Base):
         # TODO: add functionality
         self.status = 'closed'
 
-    def get_messages(self, generator=False):
+    def get_messages(self, generator=False, force=False):
+        self.prepare()
+
         if generator:
-            return (invoice.get_message() for invoice in self.invoices)
+            return (invoice.get_message(force) for invoice in self.invoices)
         else:
-            return [invoice.get_message() for invoice in self.invoices]
+            return [invoice.get_message(force) for invoice in self.invoices]
+
+    def prepare(self):
+        self.people_list = hitobito.getMailingListRecipients(
+            self.mailing_list)
+        # parse all participents to make sure they are valid
+        # TODO: would be better to store the parsed persons insted of the whole people_list
+        issues = []
+        for person in self.people_list:
+            try:
+                hitobito.parseMailingListPerson(person)
+            except error.BillyError as e:
+                issues.append(e)
+        if len(issues) > 0:
+            raise error.MultipleErrors(issues)
+        self.user = hitobito.getUser()
 
     def generate(self, generator=False):
+        self.prepare()
+
         if generator:
             return (invoice.generate() for invoice in self.invoices)
         else:
@@ -134,6 +146,8 @@ class Invoice(Base):
         sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
     update_time = sa.Column(
         sa.TIMESTAMP, server_default=sa.func.now(), nullable=False)
+    last_email_sent = sa.Column(
+        sa.TIMESTAMP, server_default=None, nullable=True)
 
     def __init__(self, recipient, datestring, bulk_id, status='pending', status_message="Status Message"):
         self.recipient = recipient['id']
@@ -148,8 +162,8 @@ class Invoice(Base):
         postfix = str(bulk_id) + datestring + str(self.recipient)
         logger.info("recipient_id: {id}, recipient_name: {name}, postfix: {postfix}".format(
             id=self.recipient, name=self.recipient_name, postfix=postfix))
-        no_check_digit = prefix + \
-            ("0"*(REF_NUM_LENGTH-len(prefix)-len(postfix)-1)) + postfix
+        no_check_digit = env.BANK_REF_PREFIX + \
+            ("0"*(REF_NUM_LENGTH-len(env.BANK_REF_PREFIX)-len(postfix)-1)) + postfix
         self.esr = no_check_digit + stdnum_esr.calc_check_digit(no_check_digit)
 
     # Define a property for the name with the relative address
@@ -165,8 +179,8 @@ class Invoice(Base):
 
     def insert_variables(self, text):
 
-        hitobito_debtor = hitobito.getPerson(self.recipient)
-        hitobito_sender = hitobito.getUser()
+        hitobito_debtor = hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])
+        hitobito_sender = self.bulk_invoice.user
 
         return render_template_string(text,
                                       title=self.bulk_invoice.title,
@@ -181,7 +195,7 @@ class Invoice(Base):
 
     @hybrid_property
     def mail_body(self):
-        return self.insert_variables(self.bulk_invoice.text_mail)
+        return self.insert_variables(self.bulk_invoice.text_mail + "\n\n") # new line for proper rendering in Apple Mail
 
     @hybrid_property
     def invoice_body(self):
@@ -198,20 +212,27 @@ class Invoice(Base):
         if(self.bulk_invoice.status != 'issued'):
             raise NotIssued(self.bulk_invoice.status)
 
-        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=IBAN, creditor={
+        debtor = hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])
+
+        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=env.BANK_IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
-        }, ref=self.esr, hitobito_debtor=hitobito.getPerson(self.recipient), hitobito_sender=hitobito.getUser(), date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
+        }, ref=self.esr, hitobito_debtor=debtor, hitobito_sender=self.bulk_invoice.user, date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
 
-        return string
+        return debtor['name'], string
 
-    def get_message(self):
-
-        msg = Message("Subject", bcc=[mailDefaultSender])
-        msg.add_recipient(hitobito.getPerson(self.recipient)['emails'][0])
+    def get_message(self, force=False):
+        recently_sent = self.last_email_sent and datetime.datetime.utcnow(
+        ) - self.last_email_sent < datetime.timedelta(days=30)
+        if recently_sent and not force:
+            return False, self
+        msg = Message(self.bulk_invoice.title , bcc=[env.MAIL_DEFAULT_SENDER])
+        msg.add_recipient(hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])['emails'][0])
 
         msg.body = self.mail_body
-        msg.attach("Rechnung.pdf", "application/pdf", self.generate())
-        return msg
+        _, string = self.generate()
+        msg.attach("Rechnung.pdf", "application/pdf", string)
+        self.last_email_sent = datetime.datetime.utcnow()
+        return True, msg
 
     def __repr__(self):
         return "<Invoice(id=%s, status=%s, status_message=%s(...), recipient=%s, recipient_name=%s, bulk_invoice=%s, create_time=%s, update_time=%s)>" % (

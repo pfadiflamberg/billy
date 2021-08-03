@@ -2,6 +2,8 @@ import db
 import secrets
 import zipfile
 import io
+import error
+import env
 
 from model import Invoice, BulkInvoice, NotIssued
 from loguru import logger
@@ -16,11 +18,8 @@ from flask_mail import Mail, email_dispatched
 from smtplib import SMTPException
 from flask_cors import CORS
 import traceback
-import help
 import oauth
 
-load_dotenv('./env/hitobito.env')
-load_dotenv('./env/server.env')
 load_dotenv('./env/mail.env')
 
 
@@ -29,7 +28,7 @@ class ReverseProxied(object):
         self.app = app
 
     def __call__(self, environ, start_response):
-        scheme = help.getenv('REDIRECT_URL_LOGIN').split(':')[0]
+        scheme = env.REDIRECT_URL_LOGIN.split(':')[0]
         if scheme:
             environ['wsgi.url_scheme'] = scheme
         return self.app(environ, start_response)
@@ -40,16 +39,16 @@ app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 app.secret_key = secrets.token_urlsafe(32)
 app.register_blueprint(oauth.dance, url_prefix=oauth.UNPROTECTED_PATH)
-CORS(app, origins=help.getenv('CLIENT_ORIGIN').split(
+CORS(app, origins=env.CLIENT_ORIGIN.split(
     ','), supports_credentials=True)
 
-mailServer = help.getenv('MAIL_SERVER')
-mailPort = help.getenv('MAIL_PORT')
-mailUseTLS = bool(int(help.getenv('MAIL_USE_TLS')))
-mailUseSSL = bool(int(help.getenv('MAIL_USE_SSL')))
-mailUsername = help.getenv('MAIL_USERNAME')
-mailDefaultSender = help.getenv('MAIL_DEFAULT_SENDER')
-mailPassword = help.getenv('MAIL_PASSWORD')
+mailServer = env.get('MAIL_SERVER')
+mailPort = env.get('MAIL_PORT')
+mailUseTLS = bool(int(env.get('MAIL_USE_TLS')))
+mailUseSSL = bool(int(env.get('MAIL_USE_SSL')))
+mailUsername = env.get('MAIL_USERNAME')
+mailDefaultSender = env.get('MAIL_DEFAULT_SENDER')
+mailPassword = env.get('MAIL_PASSWORD')
 
 app.config['MAIL_SERVER'] = mailServer
 app.config['MAIL_PORT'] = mailPort
@@ -58,9 +57,9 @@ app.config['MAIL_USE_SSL'] = mailUseSSL
 app.config['MAIL_USERNAME'] = mailUsername
 app.config['MAIL_DEFAULT_SENDER'] = mailDefaultSender
 app.config['MAIL_PASSWORD'] = mailPassword
-app.config['MAIL_DEBUG'] = True
+app.config['MAIL_DEBUG'] = False
 # Must be true unless you actually want to send emails
-app.config['MAIL_SUPPRESS_SEND'] = True
+app.config['MAIL_SUPPRESS_SEND'] = False
 
 mail = Mail(app)
 
@@ -126,11 +125,13 @@ def handle_exception_error(e):
     logger.info(e)
     if e == HTTPStatus.FORBIDDEN:
         return make_response(jsonify(code=HTTPStatus.FORBIDDEN, message=HTTPStatus.FORBIDDEN.phrase + ": User not allowed to use application."), HTTPStatus.FORBIDDEN)
+    if isinstance(e, error.BillyError):
+        return make_response(e.asJSON(), HTTPStatus.PRECONDITION_REQUIRED)
     logger.info(traceback.print_exc())
     return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase + ": Error has been logged on the server."), HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@app.errorhandler(HTTPError)
+@ app.errorhandler(HTTPError)
 def handle_http_error(e):
     # If HTTPStatus.NOT_FOUND: The group does not exist (hitobito-URL could also be invalid) -> HTTPStatus.BAD_REQUEST Invalid argument
     # Else: Something with the HTTP response was wrong -> HTTPStatus.INTERNAL_SERVER_ERROR or 502
@@ -142,45 +143,45 @@ def handle_http_error(e):
             code=HTTPStatus.BAD_REQUEST, message="Invalid Argument: Group does not exist"), HTTPStatus.BAD_REQUEST)
     else:
         response = make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase + ": Bad Answer to HTTP Request",
-                                 details={"http_reason": e.response.reason, "http_code": e.response.status_code, "url": e.request.url}), HTTPStatus.INTERNAL_SERVER_ERROR)
+                                         details={"http_reason": e.response.reason, "http_code": e.response.status_code, "url": e.request.url}), HTTPStatus.INTERNAL_SERVER_ERROR)
     return response
 
 
-@app.errorhandler(KeyError)
+@ app.errorhandler(KeyError)
 def handle_key_error(e):
     # Missing Parameter -> HTTPStatus.BAD_REQUEST
     return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Missing Parameter", details={"missing_parameter": e.args[0]}), HTTPStatus.BAD_REQUEST)
 
 
-@app.errorhandler(NotIssued)
+@ app.errorhandler(NotIssued)
 def handle_not_issued(e):
     # Request was ok, but conflicts with resource state -> Invalid Argument
     return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Invalid Argument: Invoice has not been issued or already been closed", invoice_status=e.status), HTTPStatus.BAD_REQUEST)
 
 
-@app.errorhandler(SMTPException)
+@ app.errorhandler(SMTPException)
 def handle_mail_error(e):
     # Clients request was fine, but could not contact smtp/send mail -> HTTPStatus.INTERNAL_SERVER_ERROR
     return make_response(jsonify(code=HTTPStatus.INTERNAL_SERVER_ERROR, message=HTTPStatus.INTERNAL_SERVER_ERROR.phrase + ": SMTP", details={"smtp_code": e.smtp_code, "smtp_error": e.smtp_error.decode("utf-8")}), HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-@app.errorhandler(db.ResourceNotFound)
+@ app.errorhandler(db.ResourceNotFound)
 def handle_resource_not_found(e):
     # Resource not in database -> HTTPStatus.NOT_FOUND
     return make_response(jsonify(code=HTTPStatus.NOT_FOUND, message=HTTPStatus.NOT_FOUND.phrase), HTTPStatus.NOT_FOUND)
 
 
-@app.before_first_request
+@ app.before_first_request
 def upgradeDB(version="head"):
     db.upgradeDatabase(version)
 
 
-@app.before_request
+@ app.before_request
 def getSession():
     g.session = db.loadSession()
 
 
-@app.teardown_request
+@ app.teardown_request
 def closeSession(_):
     try:
         g.session.close()
@@ -188,7 +189,7 @@ def closeSession(_):
         logger.log("Could not close session")
 
 
-@app.route('/bulk', methods=['POST'])
+@ app.route('/bulk', methods=['POST'])
 def addBulkInvoice():
     session = g.session
 
@@ -205,7 +206,7 @@ def addBulkInvoice():
     return res
 
 
-@app.route('/bulk/<id>', methods=['GET'])
+@ app.route('/bulk/<id>', methods=['GET'])
 def getBulkInvoice(id):
     session = g.session
 
@@ -214,7 +215,7 @@ def getBulkInvoice(id):
     return res
 
 
-@app.route('/bulk/', methods=['GET'])
+@ app.route('/bulk/', methods=['GET'])
 def getBulkInvoices():
     session = g.session
 
@@ -224,7 +225,7 @@ def getBulkInvoices():
     return res
 
 
-@app.route('/bulk/<id>', methods=['PUT'])
+@ app.route('/bulk/<id>', methods=['PUT'])
 def updateBulkInvoice(id):
     session = g.session
 
@@ -257,7 +258,7 @@ def updateBulkInvoice(id):
     return res
 
 
-@app.route('/bulk/<id>:issue', methods=['POST'])
+@ app.route('/bulk/<id>:issue', methods=['POST'])
 def issueBulkInvoice(id):
     logger.info('id: {id}'.format(id=id))
     session = g.session
@@ -272,7 +273,7 @@ def issueBulkInvoice(id):
     return res
 
 
-@app.route('/bulk/<id>:close', methods=['POST'])
+@ app.route('/bulk/<id>:close', methods=['POST'])
 def closeBulkInvoice(id):
     session = g.session
 
@@ -284,21 +285,23 @@ def closeBulkInvoice(id):
     return res
 
 
-@app.route('/bulk/<id>:send', methods=['POST'])
+@ app.route('/bulk/<id>:send', methods=['POST'])
 def sendBulkInvoice(id):
     session = g.session
-
+    force = bool(request.args.get('force', 0, type=int))
     bi = db.getBulkInvoice(session, id)
+    sent_count = 0
+    for success, result in bi.get_messages(force=force):
+        if success:
+            mail.send(result)
+            sent_count += 1
 
-    for msg in bi.get_messages(True):
-        mail.send(msg)
-
-    res = jsonify(bulkInvoiceSchema.dump(bi))
+    res = jsonify(sent_count=sent_count)
     session.commit()
     return res
 
 
-@app.route('/bulk/<id>:generate', methods=['POST'])
+@ app.route('/bulk/<id>:generate', methods=['POST'])
 def generateBulkInvoice(id):
     session = g.session
 
@@ -306,10 +309,9 @@ def generateBulkInvoice(id):
 
     data = io.BytesIO()
     with zipfile.ZipFile(data, mode='w') as z:
-        for invoice in bi.invoices:
-            name = invoice.recipient_name + ".pdf"
-            pdf = invoice.generate()
-            z.writestr(name, pdf)
+        for name, string in bi.generate():
+            name = name + ".pdf"
+            z.writestr(name, string)
     data.seek(0)
 
     return send_file(
@@ -320,7 +322,7 @@ def generateBulkInvoice(id):
     )
 
 
-@app.route('/bulk/<id>/invoice', methods=['GET'])
+@ app.route('/bulk/<id>/invoice', methods=['GET'])
 def getInvoices(id):
     session = g.session
 
@@ -333,7 +335,7 @@ def getInvoices(id):
     return res
 
 
-@app.route('/bulk/<bulk_id>/invoice/<id>', methods=['GET'])
+@ app.route('/bulk/<bulk_id>/invoice/<id>', methods=['GET'])
 def getInvoice(bulk_id, id):
     session = g.session
 
@@ -342,7 +344,7 @@ def getInvoice(bulk_id, id):
     return res
 
 
-@app.route('/bulk/<bulk_id>/invoice/<id>', methods=['PUT'])
+@ app.route('/bulk/<bulk_id>/invoice/<id>', methods=['PUT'])
 def updateInvoice(bulk_id, id):
     session = g.session
 
@@ -361,40 +363,43 @@ def updateInvoice(bulk_id, id):
     return res
 
 
-@app.route('/bulk/<bulk_id>/invoice/<id>.pdf', methods=['GET'])
+@ app.route('/bulk/<bulk_id>/invoice/<id>.pdf', methods=['GET'])
 def generateInvoice(bulk_id, id):
     session = g.session
 
     invoice = db.getInvoice(session, id)
-
-    binary_pdf = invoice.generate()
+    invoice.bulk_invoice.prepare()
+    name, binary_pdf = invoice.generate()
     response = make_response(binary_pdf)
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = \
-        'inline; filename=%s.pdf' % 'invoice'
+    response.headers['Content-Disposition'] = 'inline; filename=%s.pdf' % 'invoice'
 
     return response
 
 
-@app.route('/bulk/<bulk_id>/invoice/<id>/mail', methods=['POST'])
-def getMailBody(bulk_id, id):
+@ app.route('/bulk/<bulk_id>/invoice/<id>:send', methods=['POST'])
+def sendInvoice(bulk_id, id):
     session = g.session
 
+    force = bool(request.args.get('force', 0, type=int))
+
     invoice = db.getInvoice(session, id)
-    msg = invoice.get_message()
-    mail.send(msg)
-    res = jsonify(invoiceSchema.dump(invoice))
 
-    return res
+    invoice.bulk_invoice.prepare()
+
+    success, result = invoice.get_message(force=force)
+    if success:
+        mail.send(result)
+    return(jsonify(sent_time=invoice.last_email_sent.isoformat()))
 
 
-@app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))
+@ app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))
 def login():
     if not oauth.dance.session.authorized:
         return redirect(url_for('billy.login'))
 
 
-@app.before_request
+@ app.before_request
 def check():
     if request.method == 'OPTIONS':  # preflight requests
         return
