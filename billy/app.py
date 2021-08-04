@@ -1,3 +1,4 @@
+from sqlalchemy.sql.sqltypes import Boolean
 import db
 import secrets
 import zipfile
@@ -288,7 +289,7 @@ def closeBulkInvoice(id):
 @ app.route('/bulk/<id>:send', methods=['POST'])
 def sendBulkInvoice(id):
     session = g.session
-    force = bool(request.args.get('force', 0, type=int))
+    force = bool(request.args.get('force', False, type=bool))
     bi = db.getBulkInvoice(session, id)
     sent_count = 0
     for success, result in bi.get_messages(force=force):
@@ -381,7 +382,7 @@ def generateInvoice(bulk_id, id):
 def sendInvoice(bulk_id, id):
     session = g.session
 
-    force = bool(request.args.get('force', 0, type=int))
+    force = bool(request.args.get('force', False, type=bool))
 
     invoice = db.getInvoice(session, id)
 
