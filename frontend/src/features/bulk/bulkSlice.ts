@@ -135,7 +135,6 @@ export const updateBulk = (bulk: Bulk): AppThunk => async (
     var unknownVariables = [bulk.text_mail, bulk.text_invoice, bulk.text_reminder].map(text => {
         return [ ...text.matchAll(/{{ *([^} ]*) *}}/gm) ].map(match => match[1]).filter(v => !ALLOWED_VARIABLES.includes(v));
     }).flat()
-    console.log(unknownVariables);
     var unknownVariablesWCount: { [Key: string]: number } = {};
     for (const v in unknownVariables) {
         unknownVariablesWCount[unknownVariables[v]] ? unknownVariablesWCount[unknownVariables[v]]++ : unknownVariablesWCount[unknownVariables[v]] = 1;
