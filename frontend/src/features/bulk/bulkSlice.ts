@@ -148,8 +148,8 @@ export const updateBulk = (bulk: Bulk): AppThunk => async (
         }
         errors.push({description: key + str})
     }
-    if (errors.length > 1) {
-        dispatch(handleError({title: 'Invalid Variables', description: 'Invalid variables used. Use: ' + ALLOWED_VARIABLES.join(', '), details: errors}));
+    if (errors.length > 0) {
+        dispatch(handleError({title: 'Invalid Variable', description: 'Invalid variable used. Use: ' + ALLOWED_VARIABLES.join(', ') + '. You used:', details: errors}));
         return
     }
 
