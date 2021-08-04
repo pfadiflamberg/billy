@@ -208,6 +208,7 @@ export const issueBulk = (bulk: Bulk): AppThunk => async (
             updated_bulk.status = 'issued'
             dispatch(setBulk(updated_bulk));
             dispatch(showUpdateBulkView(false));
+            dispatch(fetchInvoicesByBulk(bulk));
         })
         .catch(e => dispatch(handleError(e)));
 }
@@ -222,6 +223,8 @@ export const sendBulk = (bulk: Bulk): AppThunk => async (
 
     request(new URL(bulk.name + ":send", BACKEND_BASE), 'POST')
         .then(r => {
+            // TODO: display the count of emails sent
+            // should first create a reusable notification component
             dispatch(showEmailPreviewBulkView(false));
         })
         .catch(e => dispatch(handleError(e)))
