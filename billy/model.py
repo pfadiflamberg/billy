@@ -102,7 +102,8 @@ class BulkInvoice(Base):
         # parse all participents to make sure they are valid
         # TODO: would be better to store the parsed persons insted of the whole people_list
         issues = []
-        for person in self.people_list:
+        for id in self.people_list:
+            person = self.people_list[id]
             try:
                 hitobito.parseMailingListPerson(person)
             except error.BillyError as e:
@@ -179,23 +180,28 @@ class Invoice(Base):
 
     def insert_variables(self, text):
 
-        hitobito_debtor = hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])
+        hitobito_debtor = hitobito.parseMailingListPerson(
+            self.bulk_invoice.people_list[self.recipient])
         hitobito_sender = self.bulk_invoice.user
 
         return render_template_string(text,
                                       title=self.bulk_invoice.title,
                                       due_date=self.bulk_invoice.due_date.strftime(
                                           '%d. %B %Y'),
-                                      name=hitobito_debtor['name'],
-                                      shortname=hitobito_debtor['shortname'],
-                                      salutation=hitobito_debtor['salutation'],
+                                      year_issued=self.bulk_invoice.issuing_date.strftime(
+                                          '%Y'),
+                                      date_issued=self.bulk_invoice.issuing_date.strftime(
+                                          '%d. %B %Y'),
+                                      recipient_name=hitobito_debtor['name'],
+                                      recipient_shortname=hitobito_debtor['shortname'],
                                       sender_name=hitobito_sender['name'],
                                       sender_shortname=hitobito_sender['shortname'],
                                       )
 
     @hybrid_property
     def mail_body(self):
-        return self.insert_variables(self.bulk_invoice.text_mail + "\n\n") # new line for proper rendering in Apple Mail
+        # double new line for proper rendering in Apple Mail
+        return self.insert_variables(self.bulk_invoice.text_mail + "\n\n")
 
     @hybrid_property
     def invoice_body(self):
@@ -212,7 +218,8 @@ class Invoice(Base):
         if(self.bulk_invoice.status != 'issued'):
             raise NotIssued(self.bulk_invoice.status)
 
-        debtor = hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])
+        debtor = hitobito.parseMailingListPerson(
+            self.bulk_invoice.people_list[self.recipient])
 
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=env.BANK_IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
@@ -225,8 +232,9 @@ class Invoice(Base):
         ) - self.last_email_sent < datetime.timedelta(days=30)
         if recently_sent and not force:
             return False, self
-        msg = Message(self.bulk_invoice.title , bcc=[env.MAIL_DEFAULT_SENDER])
-        msg.add_recipient(hitobito.parseMailingListPerson(self.bulk_invoice.people_list[self.recipient])['emails'][0])
+        msg = Message(self.bulk_invoice.title, bcc=[env.MAIL_DEFAULT_SENDER])
+        msg.add_recipient(hitobito.parseMailingListPerson(
+            self.bulk_invoice.people_list[self.recipient])['emails'][0])
 
         msg.body = self.mail_body
         _, string = self.generate()

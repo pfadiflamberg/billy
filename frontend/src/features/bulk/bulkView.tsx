@@ -107,7 +107,7 @@ export function BulkView() {
                                     <Form.Control readOnly={readOnly} as="textarea"
                                         name="text_invoice"
                                         type="text"
-                                        style={{ height: '300px' }}
+                                        style={{ height: '600px' }}
                                         onChange={e => (bulk) ? bulk.text_invoice = e.target.value : true}
                                         defaultValue={bulk.text_invoice}>
                                     </Form.Control>
@@ -117,7 +117,7 @@ export function BulkView() {
                                     <Form.Control readOnly={readOnly} as="textarea"
                                         name="text_reminder"
                                         type="text"
-                                        style={{ height: '300px' }}
+                                        style={{ height: '600px' }}
                                         onChange={e => (bulk) ? bulk.text_reminder = e.target.value : true}
                                         defaultValue={bulk.text_reminder}>
                                     </Form.Control>
