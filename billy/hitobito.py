@@ -75,11 +75,11 @@ def getMailingListRecipients(mailing_list_url):
     """
     p = re.compile('(groups\/[0-9]+\/mailing_lists\/[0-9]+)')
     try:
-        response = hitobito(p.search(mailing_list_url).group(0))
+        path = p.search(mailing_list_url).group(0)
     except:
         raise error.InvalidMailingListURL(mailing_list_url)
-    response = hitobito(p.search(mailing_list_url).group(0))
-    return {int(p['id']) : p for p in response['linked']['people']}
+    response = hitobito(path)
+    return {int(p['id']): p for p in response['linked']['people']}
 
 
 def getMailingListPerson(people_list, person_id, id_map):
@@ -103,6 +103,7 @@ def parseMailingListPerson(person):
         'addr': getAddress(person),
         'emails': person['list_emails'],
     }
+
 
 def parseHitobitoPerson(person):
     return {
