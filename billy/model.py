@@ -54,8 +54,8 @@ class BulkInvoice(Base):
         return sa.func.concat("bulk/", cls.id)
 
     def __init__(self, title, mailing_list, status='draft', due_date=None,
-                 text_mail="{{ salutation }}, \n You've got mail!\n Liebe Grüsse Pfnörch",
-                 text_invoice="{{ salutation }},\n Rechnungstext\n Grüsse Pfnörch",
+                 text_mail="Hallo {{ recipient_shortname }}, \n Siehe Rechnung im Anahng.\n Liebe Grüsse {{ sender_shortname}}",
+                 text_invoice="Hallo {{ recipient_shortname }},\n Rechnungstext\n Liebe Grüsse {{ sender_shortname}}",
                  text_reminder="Reminder Text"):
         self.title = title
         self.mailing_list = mailing_list
