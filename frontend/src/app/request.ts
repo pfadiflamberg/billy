@@ -1,8 +1,4 @@
-
-interface ErrorResponse {
-    code: number,
-    message: string
-}
+import { BillyError } from "../features/error/errorSlice";
 
 export async function request(url: URL, method: string = 'GET', payload: any = null): Promise<JSON> {
     const response = await fetch(url.toString(), {
@@ -17,8 +13,8 @@ export async function request(url: URL, method: string = 'GET', payload: any = n
     })
     const data = await response.json();
     if (response.status !== 200 && response.status !== 201 ) {
-        const err = data as ErrorResponse;
-        throw new Error(err.message);
+        const err = data as BillyError;
+        throw err;
     }
     return data;
 }

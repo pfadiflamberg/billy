@@ -1,16 +1,10 @@
 import os
-import help
 import re
 import requests
+import error
+import env
 from oauth import dance
 from requests.adapters import HTTPAdapter
-
-from dotenv import load_dotenv
-
-load_dotenv('./env/hitobito.env')
-
-# we read them from the provided file
-hitobitoLang = help.getenv('HITOBITO_LANG')
 
 # Use this - once db.scout.ch provides the API scope
 #################################################################
@@ -19,7 +13,7 @@ hitobitoLang = help.getenv('HITOBITO_LANG')
 
 # def hitobito(request):
 #     assert(not request.startswith('/'))
-#     path = os.path.join(hitobitoLang, request) + '.json'
+#     path = os.path.join(HITOBITO_LANG, request) + '.json'
 #     response = session.get(url=path)
 #     response.raise_for_status()
 #     return response.json()
@@ -29,18 +23,18 @@ hitobitoLang = help.getenv('HITOBITO_LANG')
 
 headers = {
     "Accept": "application/json",
-    "X-User-Email": help.getenv('HITOBITO_TOKEN_USER'),
-    "X-User-Token": help.getenv('HITOBITO_TOKEN'),
+    "X-User-Email": env.HITOBITO_TOKEN_USER,
+    "X-User-Token": env.HITOBITO_TOKEN,
 }
 
 session = requests.Session()
-session.mount(help.getenv('HITOBITO_HOST'), HTTPAdapter(max_retries=5))
+session.mount(env.HITOBITO_HOST, HTTPAdapter(max_retries=5))
 session.headers.update(headers)
 
 
 def hitobito(request):
-    url = os.path.join(help.getenv('HITOBITO_HOST'),
-                       hitobitoLang, request) + '.json'
+    url = os.path.join(env.HITOBITO_HOST,
+                       env.HITOBITO_LANG, request) + '.json'
     response = session.get(url=url)
     response.raise_for_status()
     return response.json()
@@ -80,9 +74,35 @@ def getMailingListRecipients(mailing_list_url):
     Given a mailing_list url, return all the recipients (IDs, Names).
     """
     p = re.compile('(groups\/[0-9]+\/mailing_lists\/[0-9]+)')
+    try:
+        response = hitobito(p.search(mailing_list_url).group(0))
+    except:
+        raise error.InvalidMailingListURL(mailing_list_url)
     response = hitobito(p.search(mailing_list_url).group(0))
-    return [{'id': p['id'], 'name':getName(p)} for p in response['linked']['people']]
+    return {int(p['id']) : p for p in response['linked']['people']}
 
+
+def getMailingListPerson(people_list, person_id, id_map):
+    p = people_list[id_map[person_id]]
+    return parseMailingListPerson(p)
+
+
+def parseMailingListPerson(person):
+    if len(person['list_emails']) < 1:
+        raise error.RecipientRequiresEmail(person['id'])
+    for attr in ['address', 'zip_code', 'town']:
+        if person[attr] and len(person[attr]) < 1:
+            raise error.RecipientAddressError(person['id'])
+    return {
+        'id': person['id'],
+        'name': getName(person),
+        'salutation': "Hallo " + person.get('nickname', person['first_name']),
+        'nickname': getNickname(person),
+        'shortname': getShortname(person),
+        'role': getRole(person),
+        'addr': getAddress(person),
+        'emails': person['list_emails'],
+    }
 
 def parseHitobitoPerson(person):
     return {

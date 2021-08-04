@@ -2,8 +2,15 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import { unauthenticated } from "../auth/authSlice";
 
+export type BillyError = {
+    title: string,
+    description: string,
+    details: any,
+    link: string,
+}
+
 interface ErrorState {
-    errors: Error[];
+    errors: BillyError[];
 }
 
 const initialState: ErrorState = {
@@ -14,7 +21,7 @@ export const errorSlice = createSlice({
     name: 'error',
     initialState,
     reducers: {
-        addError: (state, action: PayloadAction<Error>) => {
+        addError: (state, action: PayloadAction<BillyError>) => {
             state.errors.push(action.payload);
         },
         clearErrors: (state) => {
@@ -28,15 +35,10 @@ const { addError, clearErrors } = errorSlice.actions;
 export const handleError = (error: any): AppThunk => async (
     dispatch
 ) => {
-    if (error instanceof Error) {
-    } else if (typeof error === 'string' || error instanceof String) {
-        error = new Error(error.toString())
-    } else {
-        // unexpected error type
-        throw(error);
+    if (error.message) {
+        error = {title: 'Error', description: error.message};
     }
-    console.log(error.toString());
-    if (error.toString() === 'Error: Unauthorized') {
+    if (error.description === 'Unauthorized') {
         dispatch(unauthenticated());
         return
     }
