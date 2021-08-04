@@ -1,4 +1,3 @@
-from sqlalchemy.sql.sqltypes import Boolean
 import db
 import secrets
 import zipfile

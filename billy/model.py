@@ -1,4 +1,3 @@
-from sqlalchemy.sql.functions import current_user
 import generate
 import hitobito
 import sqlalchemy as sa
