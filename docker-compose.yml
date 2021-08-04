@@ -8,13 +8,13 @@ services:
       - MYSQL_PASSWORD=password
       - MYSQL_DATABASE=billy
       - MYSQL_RANDOM_ROOT_PASSWORD=1
-    ports:
-      - "3306:3306"
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - ./sql:/docker-entrypoint-initdb.d
       - ./var/mysql:/var/lib/mysql
+    networks:
+      - database
     cap_add:
       - SYS_NICE
     profiles:
@@ -32,6 +32,8 @@ services:
       - MYSQL_SERVER=mysql
       - MYSQL_PORT=3306
     build: .
+    networks:
+      - database
     ports:
       - "5000:5000"
     depends_on:
@@ -60,7 +62,12 @@ services:
     build: .
     volumes:
       - ".:/usr/src/app"
+    networks:
+      - database
     depends_on:
       - "mysql"
     profiles:
       - "migration"
+
+networks:
+  database:

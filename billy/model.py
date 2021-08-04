@@ -97,10 +97,13 @@ class BulkInvoice(Base):
             return [invoice.get_message(force) for invoice in self.invoices]
 
     def prepare(self):
-        self.people_list = hitobito.getMailingListRecipients(
+        current_recipients = hitobito.getMailingListRecipients(
             self.mailing_list)
+        # filter out new recipients that have been added after issuing
+        active_ids = [invoice.id for invoice in current_recipients]
+        self.people_list = dict(
+            filter(lambda r: r[0] in active_ids, current_recipients.items()))
         # parse all participents to make sure they are valid
-        # TODO: would be better to store the parsed persons insted of the whole people_list
         issues = []
         for id in self.people_list:
             person = self.people_list[id]
