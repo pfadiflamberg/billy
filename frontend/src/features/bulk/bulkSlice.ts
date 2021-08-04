@@ -130,6 +130,29 @@ export const updateBulk = (bulk: Bulk): AppThunk => async (
     getState
 ) => {
 
+    // check for invalid variables
+    const ALLOWED_VARIABLES = ['title', 'due_date', 'year_issued', 'date_issued', 'recipient_name', 'recipient_shortname', 'sender_name', 'sender_shortname']
+    var unknownVariables = [bulk.text_mail, bulk.text_invoice, bulk.text_reminder].map(text => {
+        return [ ...text.matchAll(/{{ *([^} ]*) *}}/gm) ].map(match => match[1]).filter(v => !ALLOWED_VARIABLES.includes(v));
+    }).flat()
+    var unknownVariablesWCount: { [Key: string]: number } = {};
+    for (const v in unknownVariables) {
+        unknownVariablesWCount[unknownVariables[v]] ? unknownVariablesWCount[unknownVariables[v]]++ : unknownVariablesWCount[unknownVariables[v]] = 1;
+    }
+    var errors = []
+    for (let key in unknownVariablesWCount) {
+        var str = ""
+        const count = unknownVariablesWCount[key];
+        if (count > 1) {
+            str += " (" + count + "x)"
+        }
+        errors.push({description: key + str})
+    }
+    if (errors.length > 1) {
+        dispatch(handleError({title: 'Invalid Variables', description: 'Invalid variables used.', details: errors}));
+        return
+    }
+
     const BACKEND_BASE = selectBackendBase(getState());
 
     request(new URL(bulk.name, BACKEND_BASE), 'PUT', bulk)

@@ -9,10 +9,6 @@ export function ErrorView() {
 
     let hasErrors = 0 < errors.length;
 
-    if (errors[0]) {
-        console.log(errors[0].details);
-    }
-
     return (
         <Modal show={hasErrors} onHide={() => dispatch(clearErrors())}>
             {hasErrors &&
@@ -23,8 +19,13 @@ export function ErrorView() {
                     <Modal.Body>
                         {errors[0].description}
                         <ListGroup>
-                            {errors[0].details.map((err: BillyError) => {
-                                return <ListGroup.Item>{err.description} <a target="_blank" href={err.link}>view</a></ListGroup.Item>
+                            {errors[0].details && errors[0].details.map((err: BillyError) => {
+                                return (
+                                    <ListGroup.Item>{err.description}
+                                        {err.link &&
+                                            <a target="_blank" rel="noreferrer" href={err.link}>view</a>
+                                        }
+                                    </ListGroup.Item>)
                             })}
                         </ListGroup>
                     </Modal.Body>
