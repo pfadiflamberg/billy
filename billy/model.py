@@ -100,7 +100,7 @@ class BulkInvoice(Base):
         current_recipients = hitobito.getMailingListRecipients(
             self.mailing_list)
         # filter out new recipients that have been added after issuing
-        active_ids = [invoice.id for invoice in current_recipients]
+        active_ids = [invoice.recipient for invoice in self.invoices]
         self.people_list = dict(
             filter(lambda r: r[0] in active_ids, current_recipients.items()))
         # parse all participents to make sure they are valid
@@ -219,7 +219,7 @@ class Invoice(Base):
 
     def generate(self):
         if(self.bulk_invoice.status != 'issued'):
-            raise NotIssued(self.bulk_invoice.status)
+            raise error.InvoiceNotIssued(self.bulk_invoice)
 
         debtor = hitobito.parseMailingListPerson(
             self.bulk_invoice.people_list[self.recipient])
@@ -248,9 +248,3 @@ class Invoice(Base):
     def __repr__(self):
         return "<Invoice(id=%s, status=%s, status_message=%s(...), recipient=%s, recipient_name=%s, bulk_invoice=%s, create_time=%s, update_time=%s)>" % (
             self.id, self.status, str(self.status_message)[0:5], self.recipient, self.recipient_name, self.bulk_invoice_id, self.create_time, self.update_time)
-
-
-# Exceptions
-class NotIssued(Exception):
-    def __init__(self, status):
-        self.status = status
