@@ -60,3 +60,10 @@ class MultipleErrors(BillyError):
         for e in errors:
             details.append(e.asJSON())
         super().__init__("Multiple Erros", "Multiple issues encountered:", details=details)
+
+
+class InvoiceNotIssued(BillyError):
+
+    def __init__(self, bulk):
+        super().__init__("Invoice not active",
+                         "The invoice needs to be in the issued state for this operation.")

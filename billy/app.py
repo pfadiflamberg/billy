@@ -147,18 +147,6 @@ def handle_http_error(e):
     return response
 
 
-@ app.errorhandler(KeyError)
-def handle_key_error(e):
-    # Missing Parameter -> HTTPStatus.BAD_REQUEST
-    return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Missing Parameter", details={"missing_parameter": e.args[0]}), HTTPStatus.BAD_REQUEST)
-
-
-@ app.errorhandler(NotIssued)
-def handle_not_issued(e):
-    # Request was ok, but conflicts with resource state -> Invalid Argument
-    return make_response(jsonify(code=HTTPStatus.BAD_REQUEST, message="Invalid Argument: Invoice has not been issued or already been closed", invoice_status=e.status), HTTPStatus.BAD_REQUEST)
-
-
 @ app.errorhandler(SMTPException)
 def handle_mail_error(e):
     # Clients request was fine, but could not contact smtp/send mail -> HTTPStatus.INTERNAL_SERVER_ERROR
