@@ -5,7 +5,7 @@ import io
 import error
 import env
 
-from model import Invoice, BulkInvoice, NotIssued
+from model import Invoice, BulkInvoice
 from loguru import logger
 from requests import HTTPError, ConnectionError
 from http import HTTPStatus
