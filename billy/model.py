@@ -223,7 +223,7 @@ class Invoice(Base):
             raise error.InvoiceNotIssued(self.bulk_invoice)
 
         debtor = hitobito.parseMailingListPerson(
-            self.bulk_invoice.people_list[self.recipient])
+            self.bulk_invoice.people_list[self.recipient], verify=False)
 
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=env.BANK_IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
