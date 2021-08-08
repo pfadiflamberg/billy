@@ -213,7 +213,7 @@ export const issueBulk = (bulk: Bulk): AppThunk => async (
         .catch(e => dispatch(handleError(e)));
 }
 
-export const sendBulk = (bulk: Bulk): AppThunk => async (
+export const sendBulk = (bulk: Bulk, options = {}): AppThunk => async (
     dispatch,
     getState,
 ) => {
@@ -221,7 +221,10 @@ export const sendBulk = (bulk: Bulk): AppThunk => async (
     const BACKEND_BASE = selectBackendBase(getState());
     dispatch(setSendingEmail(true));
 
-    request(new URL(bulk.name + ":send", BACKEND_BASE), 'POST')
+    var url = new URL(bulk.name + ":send", BACKEND_BASE);
+    Object.entries(options).forEach(option => url.searchParams.append(option[0], String(option[1])));
+
+    request(url, 'POST')
         .then(r => {
             // TODO: display the count of emails sent
             // should first create a reusable notification component

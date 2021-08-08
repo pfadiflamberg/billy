@@ -206,6 +206,7 @@ POST /bulk/<id>:send
 | Query Name | Description                                                         | Example | Required |
 | ---------- | ------------------------------------------------------------------- | ------- | -------- |
 | force      | Force-send all emails even if they have been recently sent already. | force=1 | no       |
+| skip       | Skip invoices to incomplete recipients (missing email or address).  | skip=1  | no       |
 
 
 This will send all pending invoices of this bulk via email and return the amount of invoices that have been dispatched.

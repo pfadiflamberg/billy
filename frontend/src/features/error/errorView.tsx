@@ -21,7 +21,7 @@ export function ErrorView() {
                         <ListGroup>
                             {errors[0].details && errors[0].details.map((err: BillyError) => {
                                 return (
-                                    <ListGroup.Item>{err.description}
+                                    <ListGroup.Item>{err.description + " "}
                                         {err.link &&
                                             <a target="_blank" rel="noreferrer" href={err.link}>view</a>
                                         }

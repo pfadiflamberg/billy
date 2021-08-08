@@ -42,6 +42,11 @@ export function InvoiceListView() {
                                 <Col xs={3}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <ButtonGroup size="sm">
+                                            {invoice.last_email_sent &&
+                                                <div>
+                                                    last_email_sent: {invoice.last_email_sent}
+                                                </div>
+                                            }
                                             <Button
                                                 onClick={e => e.stopPropagation()}
                                                 variant={badgeVariantForStatus(invoice.status)}>

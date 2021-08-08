@@ -87,12 +87,14 @@ def getMailingListPerson(people_list, person_id, id_map):
     return parseMailingListPerson(p)
 
 
-def parseMailingListPerson(person):
-    if len(person['list_emails']) < 1:
-        raise error.RecipientRequiresEmail(person['id'])
-    for attr in ['address', 'zip_code', 'town']:
-        if person[attr] and len(person[attr]) < 1:
-            raise error.RecipientAddressError(person['id'])
+def parseMailingListPerson(person, verify=True):
+
+    if verify:
+        if len(person['list_emails']) < 1:
+            raise error.RecipientRequiresEmail(person['id'])
+        for attr in ['address', 'zip_code', 'town']:
+            if person[attr] and len(person[attr]) < 1:
+                raise error.RecipientAddressError(person['id'])
     return {
         'id': person['id'],
         'name': getName(person),
