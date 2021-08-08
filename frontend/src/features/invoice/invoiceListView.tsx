@@ -1,6 +1,6 @@
-import { useAppSelector } from "../../app/hooks";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectBackendBase } from "../backend/backendSlice";
-import { selectInvoices } from "./invoiceSlice";
+import { selectInvoices, annulInvoice } from "./invoiceSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
 function badgeVariantForStatus(status: string): string {
@@ -19,8 +19,9 @@ function badgeVariantForStatus(status: string): string {
 
 export function InvoiceListView() {
 
-    const BACKEND_BASE = useAppSelector(selectBackendBase);
+    const dispatch = useAppDispatch();
 
+    const BACKEND_BASE = useAppSelector(selectBackendBase);
     const invoices = useAppSelector(selectInvoices);
 
     return (
@@ -63,8 +64,12 @@ export function InvoiceListView() {
                                             >
                                                 <Dropdown.Item onClick={e => window.open(BACKEND_BASE + invoice.name + '.pdf')}>Get PDF</Dropdown.Item>
                                                 <Dropdown.Item disabled onClick={e => console.log('TODO')}>Send as Email (TODO)</Dropdown.Item>
-                                                <Dropdown.Divider />
-                                                <Dropdown.Item disabled onClick={e => console.log('TODO')}>Annul (TODO)</Dropdown.Item>
+                                                {invoice.status == 'pending' &&
+                                                    <div>
+                                                        <Dropdown.Divider />
+                                                        <Dropdown.Item onClick={e => dispatch(annulInvoice(invoice))}>Annul</Dropdown.Item>
+                                                    </div>
+                                                }
                                             </DropdownButton>
                                         </ButtonGroup>
                                     </div>

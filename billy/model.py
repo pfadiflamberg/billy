@@ -91,9 +91,9 @@ class BulkInvoice(Base):
         self.prepare(skip=skip)
 
         if generator:
-            return (invoice.get_message(force) for invoice in self.invoices)
+            return (invoice.get_message(force) for invoice in self.invoices if invoice.status == "pending")
         else:
-            return [invoice.get_message(force) for invoice in self.invoices]
+            return [invoice.get_message(force) for invoice in self.invoices if invoice.status == "pending"]
 
     def prepare(self, skip=False):
         current_recipients = hitobito.getMailingListRecipients(
@@ -120,9 +120,9 @@ class BulkInvoice(Base):
         self.prepare()
 
         if generator:
-            return (invoice.generate() for invoice in self.invoices)
+            return (invoice.generate() for invoice in self.invoices if invoice.status == "pending")
         else:
-            return [invoice.generate() for invoice in self.invoices]
+            return [invoice.generate() for invoice in self.invoices if invoice.status == "pending"]
 
     def __repr__(self):
         return "<BulkInvoice(id=%s, title=%s, mailing_list=%s, status=%s, issuing_date=%s, due_date=%s, len(invoices)=%s, create_time=%s, update_time=%s, text_invoice=%s(...), text_reminder=%s(...))>" % (
@@ -235,11 +235,13 @@ class Invoice(Base):
         recently_sent = self.last_email_sent and datetime.datetime.utcnow(
         ) - self.last_email_sent < datetime.timedelta(days=30)
         if recently_sent and not force:
+            logger.info("skip: mail sent in the last 30 days")
             return False, self
         msg = Message(self.bulk_invoice.title, bcc=[env.MAIL_DEFAULT_SENDER])
         recipients = hitobito.parseMailingListPerson(
             self.bulk_invoice.people_list[self.recipient], verify=False)['emails']
         if len(recipients) < 1:
+            logger.info("skip: missing email address")
             return False, self
         msg.add_recipient(recipients[0])
 

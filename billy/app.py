@@ -336,20 +336,15 @@ def getInvoice(bulk_id, id):
     return res
 
 
-@ app.route('/bulk/<bulk_id>/invoice/<id>', methods=['PUT'])
-def updateInvoice(bulk_id, id):
+@ app.route('/bulk/<bulk_id>/invoice/<id>:annul', methods=['POST'])
+def annulInvoice(bulk_id, id):
     session = g.session
 
-    # Get Invoice
     invoice = db.getInvoice(session, id)
+    if invoice.status != 'pending':
+        return make_response(jsonify(code=HTTPStatus.METHOD_NOT_ALLOWED, message=HTTPStatus.METHOD_NOT_ALLOWED.phrase + ": Only pending invoices can be annulled."), HTTPStatus.METHOD_NOT_ALLOWED)
 
-    # Get json paramsk
-    status = request.json.get('status', invoice.status)
-    status_message = request.json.get('status_message', invoice.status_message)
-
-    invoice.status = status
-    invoice.status_message = status_message
-
+    invoice.status = 'annulled'
     res = jsonify(invoiceSchema.dump(invoice))
     session.commit()
     return res
