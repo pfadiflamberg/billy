@@ -38,11 +38,14 @@ export const invoiceSlice = createSlice({
             payload.forEach((r) => {
                 state.items[r.name] = r;
             })
-        }
+        },
+        setInvoice: (state, { payload }: PayloadAction<Invoice>) => {
+            state.items[payload.name] = payload;
+        },
     }
 })
 
-const { setInvoices } = invoiceSlice.actions;
+const { setInvoices, setInvoice } = invoiceSlice.actions;
 
 export const fetchInvoicesByBulk = (bulk: Bulk): AppThunk => async (
     dispatch,
@@ -59,6 +62,21 @@ export const fetchInvoicesByBulk = (bulk: Bulk): AppThunk => async (
         .then(r => {
             const data = r as unknown as InvoiceResponse;
             dispatch(setInvoices(data.items));
+        })
+        .catch(e => dispatch(handleError(e)));
+}
+
+export const annulInvoice = (invoice: Invoice): AppThunk => async (
+    dispatch,
+    getState,
+) => {
+
+    const BACKEND_BASE = selectBackendBase(getState());
+
+    request(new URL(invoice.name + ":annul", BACKEND_BASE), 'POST')
+        .then(r => {
+            const updated_invoice = r as unknown as Invoice;
+            dispatch(setInvoice(updated_invoice));
         })
         .catch(e => dispatch(handleError(e)));
 }
