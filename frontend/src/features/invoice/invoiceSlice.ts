@@ -12,6 +12,7 @@ export type Invoice = {
     status: string,
     recipient_name: string,
     esr: string,
+    last_email_sent: string,
 }
 
 export type InvoiceDict = {

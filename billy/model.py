@@ -75,8 +75,7 @@ class BulkInvoice(Base):
     def issue(self):
         # TODO: add functionality
         recipients = hitobito.getMailingListRecipients(self.mailing_list)
-        logger.debug(recipients)
-        self.invoices = [Invoice(hitobito.parseMailingListPerson(recipient), self.create_time.strftime(
+        self.invoices = [Invoice(hitobito.parseMailingListPerson(recipient, verify=False), self.create_time.strftime(
             "%Y%m%d"), self.id) for recipient in recipients.values()]
 
         self.issuing_date = datetime.datetime.utcnow()
@@ -88,31 +87,33 @@ class BulkInvoice(Base):
         # TODO: add functionality
         self.status = 'closed'
 
-    def get_messages(self, generator=False, force=False):
-        self.prepare()
+    def get_messages(self, generator=False, force=False, skip=False):
+        self.prepare(skip=skip)
 
         if generator:
             return (invoice.get_message(force) for invoice in self.invoices)
         else:
             return [invoice.get_message(force) for invoice in self.invoices]
 
-    def prepare(self):
+    def prepare(self, skip=False):
         current_recipients = hitobito.getMailingListRecipients(
             self.mailing_list)
-        # filter out new recipients that have been added after issuing
+        # filter out new recipients that have been added to the mailing list after issuing
         active_ids = [invoice.recipient for invoice in self.invoices]
         self.people_list = dict(
             filter(lambda r: r[0] in active_ids, current_recipients.items()))
+        # TODO: fetch individual participants that are have been removed from the mailing list via ID
         # parse all participents to make sure they are valid
-        issues = []
-        for id in self.people_list:
-            person = self.people_list[id]
-            try:
-                hitobito.parseMailingListPerson(person)
-            except error.BillyError as e:
-                issues.append(e)
-        if len(issues) > 0:
-            raise error.MultipleErrors(issues)
+        if not skip:
+            issues = []
+            for id in self.people_list:
+                person = self.people_list[id]
+                try:
+                    hitobito.parseMailingListPerson(person)
+                except error.BillyError as e:
+                    issues.append(e)
+            if len(issues) > 0:
+                raise error.MultipleErrors(issues)
         self.user = hitobito.getUser()
 
     def generate(self, generator=False):
@@ -184,7 +185,7 @@ class Invoice(Base):
     def insert_variables(self, text):
 
         hitobito_debtor = hitobito.parseMailingListPerson(
-            self.bulk_invoice.people_list[self.recipient])
+            self.bulk_invoice.people_list[self.recipient], verify=False)
         hitobito_sender = self.bulk_invoice.user
 
         return render_template_string(text,
@@ -236,8 +237,11 @@ class Invoice(Base):
         if recently_sent and not force:
             return False, self
         msg = Message(self.bulk_invoice.title, bcc=[env.MAIL_DEFAULT_SENDER])
-        msg.add_recipient(hitobito.parseMailingListPerson(
-            self.bulk_invoice.people_list[self.recipient])['emails'][0])
+        recipients = hitobito.parseMailingListPerson(
+            self.bulk_invoice.people_list[self.recipient], verify=False)['emails']
+        if len(recipients) < 1:
+            return False, self
+        msg.add_recipient(recipients[0])
 
         msg.body = self.mail_body
         _, string = self.generate()

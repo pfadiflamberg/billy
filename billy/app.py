@@ -85,6 +85,7 @@ class InvoiceSchema(SQLAlchemyAutoSchema):
     status_message = auto_field()
     recipient = auto_field()
     recipient_name = auto_field()
+    last_email_sent = auto_field()
     esr = auto_field()
 
 
@@ -276,10 +277,13 @@ def closeBulkInvoice(id):
 @ app.route('/bulk/<id>:send', methods=['POST'])
 def sendBulkInvoice(id):
     session = g.session
+
     force = bool(request.args.get('force', 0, type=int))
+    skip = bool(request.args.get('skip', 0, type=int))
+
     bi = db.getBulkInvoice(session, id)
     sent_count = 0
-    for success, result in bi.get_messages(force=force):
+    for success, result in bi.get_messages(force=force, skip=skip):
         if success:
             mail.send(result)
             sent_count += 1

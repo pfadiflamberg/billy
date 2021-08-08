@@ -29,6 +29,8 @@ export function BulkView() {
         return Math.ceil(diff / (1000 * 60 * 60 * 24));
     }
 
+    var skipIncomplete: boolean = false;
+
     return (
         <div>
             <Modal show={emailPreview} onHide={() => {
@@ -41,10 +43,13 @@ export function BulkView() {
                         </Modal.Header>
                         <Modal.Body>
                             Sending <em>{bulk.title}</em> to {Object.entries(invoices).filter(([k, b]) => b.status === 'pending').length}/{Object.keys(invoices).length} pending recipients due in {DaysTillDue(bulk)} days.
+                            <Form>
+                                <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => skipIncomplete = e.target.checked} />
+                            </Form>
                         </Modal.Body>
                         <Modal.Footer>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk)) : true} >
+                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, { skip: Number(skipIncomplete) })) : true} >
                                     {isSendingEmail ? 'Sending...' : 'Send'}
                                 </Button>
                             </div>
