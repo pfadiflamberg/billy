@@ -360,7 +360,7 @@ def generateInvoice(bulk_id, id):
     session = g.session
 
     invoice = db.getInvoice(session, id)
-    invoice.bulk_invoice.prepare()
+    invoice.bulk_invoice.prepare(skip=True)
     name, binary_pdf = invoice.generate()
     response = make_response(binary_pdf)
     response.headers['Content-Type'] = 'application/pdf'
