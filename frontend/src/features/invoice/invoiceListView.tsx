@@ -37,16 +37,17 @@ export function InvoiceListView() {
                                     </div>
                                     <div className="BulkInvoiceListSubTitle">
                                         {invoice.esr}
+                                        {invoice.last_email_sent &&
+                                            <div>
+                                                Last Email Sent: {new Date(invoice.last_email_sent).toLocaleString('de-DE')}
+                                            </div>
+                                        }
                                     </div>
                                 </Col>
                                 <Col xs={3}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <ButtonGroup size="sm">
-                                            {invoice.last_email_sent &&
-                                                <div>
-                                                    last_email_sent: {invoice.last_email_sent}
-                                                </div>
-                                            }
+
                                             <Button
                                                 onClick={e => e.stopPropagation()}
                                                 variant={badgeVariantForStatus(invoice.status)}>
