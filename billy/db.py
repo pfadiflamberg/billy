@@ -63,6 +63,13 @@ def getInvoice(session, id):
     return i
 
 
+def getInvoiceWithESR(session, esr):
+    i = session.query(Invoice).filter(Invoice.esr == esr).one()
+    if i is None:
+        raise ResourceNotFound()
+    return i
+
+
 def getInvoiceList(session, id):
     l = session.query(BulkInvoice).get(id).invoices
     if l is None:

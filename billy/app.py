@@ -380,6 +380,21 @@ def sendInvoice(bulk_id, id):
     return(jsonify(sent_time=invoice.last_email_sent.isoformat()))
 
 
+@ app.route('/payment', methods=['POST'])
+def uploadPayments():
+    session = g.session
+    payments = request.json['payments']
+    updated_count = 0
+    for p in payments:
+        # TODO: should store payment (make sure it has not been stored already)
+        invoice = db.getInvoiceWithESR(session, p['esr'])
+        if (invoice != 'paid'):
+            invoice.status = 'paid'
+            updated_count += 1
+    session.commit()
+    return jsonify(updated_count=updated_count)
+
+
 @ app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))
 def login():
     if not oauth.dance.session.authorized:
