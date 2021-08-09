@@ -64,7 +64,7 @@ export function InvoiceListView() {
                                             >
                                                 <Dropdown.Item onClick={e => window.open(BACKEND_BASE + invoice.name + '.pdf')}>Get PDF</Dropdown.Item>
                                                 <Dropdown.Item disabled onClick={e => console.log('TODO')}>Send as Email (TODO)</Dropdown.Item>
-                                                {invoice.status == 'pending' &&
+                                                {invoice.status === 'pending' &&
                                                     <div>
                                                         <Dropdown.Divider />
                                                         <Dropdown.Item onClick={e => dispatch(annulInvoice(invoice))}>Annul</Dropdown.Item>

@@ -10,6 +10,7 @@ import { BulkCreateView } from "./features/bulk/bulkCreateView";
 import { selectAuthenticatedState } from "./features/auth/authSlice";
 import { AuthView } from "./features/auth/authView";
 import { BulkView } from './features/bulk/bulkView';
+import { PaymentsUploadButton } from './features/payment/paymentUploadButton';
 
 import './App.css';
 
@@ -35,6 +36,7 @@ function App() {
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ml-auto">
                 <Button onClick={e => dispatch(showCreateBulkView(true))} variant="primary">New Bulk</Button>
+                <PaymentsUploadButton />
               </Nav>
             </Navbar.Collapse>
           </Navbar>
