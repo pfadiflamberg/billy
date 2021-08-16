@@ -237,13 +237,13 @@ class Invoice(Base):
         if recently_sent and not force:
             logger.info("skip: mail sent in the last 30 days")
             return False, self
-        msg = Message(self.bulk_invoice.title, bcc=[env.MAIL_DEFAULT_SENDER])
-        recipients = hitobito.parseMailingListPerson(
+        recipient_emails = hitobito.parseMailingListPerson(
             self.bulk_invoice.people_list[self.recipient], verify=False)['emails']
-        if len(recipients) < 1:
+        if len(recipient_emails) < 1:
             logger.info("skip: missing email address")
             return False, self
-        msg.add_recipient(recipients[0])
+        msg = Message(self.bulk_invoice.title, recipients=recipient_emails, bcc=[
+                      env.MAIL_DEFAULT_SENDER])
 
         msg.body = self.mail_body
         _, string = self.generate()
