@@ -1,6 +1,6 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectBackendBase } from "../backend/backendSlice";
-import { selectInvoices, annulInvoice, InvoiceDict } from "./invoiceSlice";
+import { selectInvoices, annulInvoice } from "./invoiceSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
 function badgeVariantForStatus(status: string): string {
