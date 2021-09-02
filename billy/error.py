@@ -27,6 +27,10 @@ class BillyError(Exception):
         def __str__(self):
             return "BillyError: " + self.asJSON()
 
+class InvoiceListError(BillyError):
+
+    def __init__(self, title, description, invoices):
+        super().__init__(title, description, details=invoices)
 
 class InvalidMailingListURL(BillyError):
 

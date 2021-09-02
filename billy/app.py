@@ -283,7 +283,7 @@ def sendBulkInvoice(id):
 
     bi = db.getBulkInvoice(session, id)
     sent_count = 0
-    for success, result in bi.get_messages(force=force, skip=skip):
+    for success, result in bi.get_messages(generator=True, force=force, skip=skip):
         if success:
             mail.send(result)
             sent_count += 1
@@ -313,6 +313,13 @@ def generateBulkInvoice(id):
         attachment_filename='data.zip'
     )
 
+@ app.route('/bulk/<id>:cleanup', methods=['POST'])
+def cleanupBulkInvoice(id):
+    session = g.session
+    bi = db.getBulkInvoice(session, id)
+    missing = bi.cleanup()
+    session.commit()
+    return jsonify(annulled=invoicesSchema.dump(missing))
 
 @ app.route('/bulk/<id>/invoice', methods=['GET'])
 def getInvoices(id):
