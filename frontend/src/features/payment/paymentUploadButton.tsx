@@ -52,7 +52,6 @@ export function PaymentsUploadButton() {
                         date: new Date([values[2][2], values[2][1], values[2][3]].join("/")).toISOString()
                     })
                 });
-                console.log(payments);
                 dispatch(uploadPayments(payments));
             });
             reader.readAsBinaryString(file);

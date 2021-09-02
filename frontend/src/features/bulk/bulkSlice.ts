@@ -1,6 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
-import {handleError} from "../error/errorSlice";
+import {handleError} from "../popup/popupSlice";
 import {fetchInvoicesByBulk} from "../invoice/invoiceSlice";
 import {selectBackendBase} from "../backend/backendSlice";
 import { request } from "../../app/request";
