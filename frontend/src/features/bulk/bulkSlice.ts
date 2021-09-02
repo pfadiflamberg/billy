@@ -234,20 +234,6 @@ export const sendBulk = (bulk: Bulk, options = {}): AppThunk => async (
         .finally(() => dispatch(setSendingEmail(false)));
 }
 
-export const getBulkPDFs = (bulk: Bulk): AppThunk => async (
-    dispatch,
-    getState,
-) => {
-
-    const BACKEND_BASE = selectBackendBase(getState());
-
-    request(new URL(bulk.name + ":generate", BACKEND_BASE), 'POST')
-        .then(r => {
-            console.log("hello");
-        })
-        .catch(e => dispatch(handleError(e)));
-}
-
 export const selectBulks = (state: RootState) => state.bulk.items;
 export const selectSelectedBulk = (state: RootState) => state.bulk.selected;
 export const selectShowCreateBulkView = (state: RootState) => state.bulk.showCreateBulkView;

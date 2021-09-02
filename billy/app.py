@@ -335,13 +335,6 @@ def generateBulkInvoicePDF(id):
         attachment_filename='data.pdf'
     )
 
-@ app.route('/bulk/<id>:cleanup', methods=['POST'])
-def cleanupBulkInvoice(id):
-    session = g.session
-    bi = db.getBulkInvoice(session, id)
-    missing = bi.cleanup()
-    session.commit()
-    return jsonify(annulled=invoicesSchema.dump(missing))
 
 @ app.route('/bulk/<id>/invoice', methods=['GET'])
 def getInvoices(id):
