@@ -18,6 +18,7 @@ from flask_mail import Mail, email_dispatched
 from smtplib import SMTPException
 from flask_cors import CORS
 import traceback
+from sqlalchemy.orm import exc
 import oauth
 
 load_dotenv('./env/mail.env')
@@ -386,14 +387,17 @@ def uploadPayments():
     session = g.session
     payments = request.json['payments']
     updated_count = 0
+    not_found = 0
     for p in payments:
-        # TODO: should store payment (make sure it has not been stored already)
-        invoice = db.getInvoiceWithESR(session, p['esr'])
-        if (invoice != 'paid'):
-            invoice.status = 'paid'
-            updated_count += 1
+        try:
+            invoice = db.getInvoiceWithESR(session, p['esr'])
+            if (invoice != 'paid'):
+                invoice.status = 'paid'
+                updated_count += 1
+        except exc.NoResultFound:
+            not_found += 1
     session.commit()
-    return jsonify(updated_count=updated_count)
+    return jsonify(marked_paid=updated_count, not_found=not_found)
 
 
 @ app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))

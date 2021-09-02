@@ -1,25 +1,25 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { clearErrors, selectErrors, BillyError } from "./errorSlice";
+import { clearPopups, selectPopups, Popup } from "./popupSlice";
 import { Modal, ListGroup } from 'react-bootstrap';
 
-export function ErrorView() {
+export function PopupView() {
 
     const dispatch = useAppDispatch();
-    const errors = useAppSelector(selectErrors);
+    const popups = useAppSelector(selectPopups);
 
-    let hasErrors = 0 < errors.length;
+    let hasErrors = 0 < popups.length;
 
     return (
-        <Modal show={hasErrors} onHide={() => dispatch(clearErrors())}>
+        <Modal show={hasErrors} onHide={() => dispatch(clearPopups())}>
             {hasErrors &&
                 <div>
                     <Modal.Header closeButton>
-                        <Modal.Title>{errors[0].title}</Modal.Title>
+                        <Modal.Title>{popups[0].title}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        {errors[0].description}
+                        {popups[0].description}
                         <ListGroup>
-                            {errors[0].details && errors[0].details.map((err: BillyError) => {
+                            {popups[0].details && popups[0].details.map((err: Popup) => {
                                 return (
                                     <ListGroup.Item>{err.description + " "}
                                         {err.link &&
