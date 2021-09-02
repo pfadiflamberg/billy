@@ -2,7 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import { unauthenticated } from "../auth/authSlice";
 
-export type BillyError = {
+export type Popup = {
     title: string,
     description: string,
     details: any,
@@ -10,27 +10,27 @@ export type BillyError = {
 }
 
 interface ErrorState {
-    errors: BillyError[];
+    popups: Popup[];
 }
 
 const initialState: ErrorState = {
-    errors: []
+    popups: []
 }
 
-export const errorSlice = createSlice({
-    name: 'error',
+export const popupSlice = createSlice({
+    name: 'popup',
     initialState,
     reducers: {
-        addError: (state, action: PayloadAction<BillyError>) => {
-            state.errors.push(action.payload);
+        newPopup: (state, action: PayloadAction<Popup>) => {
+            state.popups.push(action.payload);
         },
-        clearErrors: (state) => {
-            state.errors = []
+        clearPopups: (state) => {
+            state.popups = []
         }
     }
 })
 
-const { addError, clearErrors } = errorSlice.actions;
+const { newPopup, clearPopups } = popupSlice.actions;
 
 export const handleError = (error: any): AppThunk => async (
     dispatch
@@ -42,11 +42,11 @@ export const handleError = (error: any): AppThunk => async (
         dispatch(unauthenticated());
         return
     }
-    dispatch(addError(error));
+    dispatch(newPopup(error));
 }
 
-export { clearErrors };
+export { newPopup, clearPopups };
 
-export const selectErrors = (state: RootState) => state.error.errors;
+export const selectPopups = (state: RootState) => state.popup.popups;
 
-export default errorSlice.reducer;
+export default popupSlice.reducer;

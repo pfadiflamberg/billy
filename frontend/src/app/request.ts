@@ -1,4 +1,4 @@
-import { BillyError } from "../features/error/errorSlice";
+import { Popup } from "../features/popup/popupSlice";
 
 export async function request(url: URL, method: string = 'GET', payload: any = null): Promise<JSON> {
     const response = await fetch(url.toString(), {
@@ -13,7 +13,7 @@ export async function request(url: URL, method: string = 'GET', payload: any = n
     })
     const data = await response.json();
     if (response.status !== 200 && response.status !== 201 ) {
-        const err = data as BillyError;
+        const err = data as Popup;
         throw err;
     }
     return data;
