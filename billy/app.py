@@ -5,6 +5,7 @@ import io
 import error
 import env
 
+from PyPDF2 import PdfFileMerger, PdfFileReader
 from model import Invoice, BulkInvoice
 from loguru import logger
 from requests import HTTPError, ConnectionError
@@ -294,8 +295,8 @@ def sendBulkInvoice(id):
     return res
 
 
-@ app.route('/bulk/<id>:generate', methods=['POST'])
-def generateBulkInvoice(id):
+@ app.route('/bulk/<id>.zip', methods=['GET'])
+def generateBulkInvoiceZip(id):
     session = g.session
 
     bi = db.getBulkInvoice(session, id)
@@ -312,6 +313,26 @@ def generateBulkInvoice(id):
         mimetype='application/zip',
         as_attachment=True,
         attachment_filename='data.zip'
+    )
+
+@ app.route('/bulk/<id>.pdf', methods=['GET'])
+def generateBulkInvoicePDF(id):
+    session = g.session
+
+    bi = db.getBulkInvoice(session, id)
+
+    data = io.BytesIO()
+    merger = PdfFileMerger()
+    for name, string in bi.generate():
+        merger.append(PdfFileReader(io.BytesIO(string)))
+    merger.write(data)
+    data.seek(0)
+
+    return send_file(
+        data,
+        mimetype='application/pdf',
+        as_attachment=False,
+        attachment_filename='data.pdf'
     )
 
 @ app.route('/bulk/<id>:cleanup', methods=['POST'])

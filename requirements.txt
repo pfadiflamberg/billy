@@ -28,3 +28,4 @@ urllib3==1.25.10
 Werkzeug==1.0.1
 qrbill==0.6.1
 pdfkit==0.6.1
+PyPDF2==1.26.0
