@@ -1,6 +1,6 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectBackendBase } from "../backend/backendSlice";
-import { selectInvoices, annulInvoice } from "./invoiceSlice";
+import { selectInvoices, annulInvoice, InvoiceDict } from "./invoiceSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
 function badgeVariantForStatus(status: string): string {
@@ -17,17 +17,24 @@ function badgeVariantForStatus(status: string): string {
 }
 
 
-export function InvoiceListView() {
+export function InvoiceListView(props: any) {
+
 
     const dispatch = useAppDispatch();
 
     const BACKEND_BASE = useAppSelector(selectBackendBase);
     const invoices = useAppSelector(selectInvoices);
 
+    var keys = Object.keys(invoices);
+
+    if (props.with_names) {
+        keys = keys.filter(k => props.with_names.includes(k));
+    }
+
     return (
         <div className="InvoiceListView">
             <ListGroup>
-                {Object.keys(invoices).map((key) => {
+                {keys.map((key) => {
                     const invoice = invoices[key];
                     return (
                         <ListGroup.Item key={key}>

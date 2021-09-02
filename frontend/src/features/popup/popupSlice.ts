@@ -6,6 +6,7 @@ export type Popup = {
     title: string,
     description: string,
     details: any,
+    details_type: string,
     link: string,
 }
 

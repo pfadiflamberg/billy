@@ -7,10 +7,13 @@ class BillyError(Exception):
     General Billy errors that are returned to the client.
     """
 
-    def __init__(self, title, description, details=None, link=None):
+    def __init__(self, title, description, details=None, details_type=None, link=None):
+        if details is not None and not details_type:
+            raise "Define details type!"
         self.title = title
         self.description = description
         self.details = details
+        self.details_type = details_type
         self.link = link
 
     def asJSON(self):
@@ -20,6 +23,7 @@ class BillyError(Exception):
         }
         if self.details:
             json['details'] = self.details
+            json['details_type'] = self.details_type
         if self.link:
             json['link'] = self.link
         return json
@@ -27,10 +31,12 @@ class BillyError(Exception):
         def __str__(self):
             return "BillyError: " + self.asJSON()
 
+
 class InvoiceListError(BillyError):
 
     def __init__(self, title, description, invoices):
-        super().__init__(title, description, details=invoices)
+        super().__init__(title, description, details=invoices, details_type='INVOICE_NAME')
+
 
 class InvalidMailingListURL(BillyError):
 
@@ -63,7 +69,8 @@ class MultipleErrors(BillyError):
         details = []
         for e in errors:
             details.append(e.asJSON())
-        super().__init__("Multiple Erros", "Multiple issues encountered:", details=details)
+        super().__init__("Multiple Erros", "Multiple issues encountered:",
+                         details=details, details_type='ERROR')
 
 
 class InvoiceNotIssued(BillyError):
