@@ -180,7 +180,7 @@ def getSalutation(hitobitoPerson):
 
 def getEmails(hitobitoPerson):
     emails = list()
-    if 'additional_emails' in hitobitoPerson['linked']:
+    if 'linked' in hitobitoPerson and 'additional_emails' in hitobitoPerson['linked']:
         emails = list(map(lambda p: p['email'],
                           hitobitoPerson['linked']['additional_emails']))
     if hitobitoPerson['email']:
