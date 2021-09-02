@@ -377,6 +377,7 @@ def sendInvoice(bulk_id, id):
     success, result = invoice.get_message(force=force)
     if success:
         mail.send(result)
+    session.commit()
     return(jsonify(sent_time=invoice.last_email_sent.isoformat()))
 
 
