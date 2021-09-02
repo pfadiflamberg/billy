@@ -179,15 +179,15 @@ def getSalutation(hitobitoPerson):
 
 
 def getEmails(hitobitoPerson):
-    # if there is a default email address only it will be returned
     emails = list()
-    if hitobitoPerson['email']:
-        emails.append(hitobitoPerson['email'])
-    elif 'additional_emails' in hitobitoPerson['linked']:
+    if 'additional_emails' in hitobitoPerson['linked']:
         emails = list(map(lambda p: p['email'],
                           hitobitoPerson['linked']['additional_emails']))
-    # remove duplicates
-    return list(set(emails))
+    if hitobitoPerson['email']:
+        emails.append(hitobitoPerson['email'])
+    # sort and remove duplicates
+    emails = list(set(emails)).sort()
+    return emails
 
 
 def getRole(hitobitoPerson):

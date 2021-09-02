@@ -35,8 +35,8 @@ function App() {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ml-auto">
-                <Button onClick={e => dispatch(showCreateBulkView(true))} variant="primary">New Bulk</Button>
                 <PaymentsUploadButton />
+                <Button onClick={e => dispatch(showCreateBulkView(true))} variant="primary">New Bulk</Button>
               </Nav>
             </Navbar.Collapse>
           </Navbar>
