@@ -104,10 +104,21 @@ class BulkInvoice(Base):
             filter(lambda r: r[0] in active_ids, mailinglist_members.items())) # recipients ^ mailinglist
         # List of all recipient ids that are no longer in the mailing list, but are not annulled yet.
 
-        missing = [invoice.name for invoice in self.invoices if invoice.recipient not in mailinglist_members.keys() and invoice.status == 'pending']
-        if len(missing) > 0:
-            raise error.InvoiceListError("Invoices not in Mailinglist", "Some recipients are no longer in the Mailinglist, but their Invoices are still pending", missing)
-        # TODO: fetch individual participants that are have been removed from the mailing list via ID
+        missing = [invoice for invoice in self.invoices 
+                   if invoice.recipient not in mailinglist_members.keys() and invoice.status == 'pending']
+        inaccessible = []
+        # fetch individual participants that are have been removed from the mailing list via ID
+        for invoice in missing:
+            returned_person = hitobito.getRawPerson(invoice.recipient)
+            # If a person id is not accessible, hitobito will return a different person (the logged in user), check if this is the case
+            if int(returned_person['id']) != invoice.recipient:
+                inaccessible.append(invoice)
+            else:
+                self.people_list[invoice.recipient] = returned_person
+        if len(inaccessible) > 0:
+            raise error.InvoiceListError("Invoices not accessible", 
+                                         "Some recipients are no longer accessible, but their Invoices are still pending", 
+                                         [recipient.name for recipient in inaccessible])
         # parse all participents to make sure they are valid
         if not skip:
             issues = []
