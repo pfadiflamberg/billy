@@ -61,7 +61,6 @@ export function BulkInvoiceList() {
                                                     <div>
                                                         <Dropdown.Item onClick={e => dispatch(getBulkPDFs(bulk))}>Download PDFs (BUG)</Dropdown.Item>
                                                         <Dropdown.Item onClick={e => { dispatch(selectBulk(bulk)) }}>Send as Email</Dropdown.Item>
-                                                        <Dropdown.Item disabled onClick={e => console.log('TODO')}>Upload Payment Record (TODO)</Dropdown.Item>
                                                     </div>
                                                 }
                                                 <Dropdown.Divider />

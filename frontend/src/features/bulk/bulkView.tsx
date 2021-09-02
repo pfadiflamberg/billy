@@ -3,6 +3,7 @@ import { Button, Form, Modal } from 'react-bootstrap';
 import { selectShowUpdateBulkView, selectSelectedBulk, selectEmailPreviewBulkView, showUpdateBulkView, showEmailPreviewBulkView, deselectBulk, selectBulks, updateBulk, Bulk, issueBulk, sendBulk, selectIsSendingBulk } from "./bulkSlice";
 import { selectInvoices } from "../invoice/invoiceSlice";
 import { InvoiceListView } from "../invoice/invoiceListView";
+import { InvoiceStatusView } from "../invoice/invoiceStatusView";
 
 export function BulkView() {
 
@@ -158,7 +159,7 @@ export function BulkView() {
                             }
                             {bulk && bulk.status !== 'draft' &&
                                 <div>
-                                    Invoices:
+                                    <InvoiceStatusView />
                                     <InvoiceListView />
                                 </div>
                             }
