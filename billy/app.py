@@ -5,6 +5,7 @@ import io
 import error
 import env
 
+from PyPDF2 import PdfFileMerger, PdfFileReader
 from model import Invoice, BulkInvoice
 from loguru import logger
 from requests import HTTPError, ConnectionError
@@ -18,6 +19,7 @@ from flask_mail import Mail, email_dispatched
 from smtplib import SMTPException
 from flask_cors import CORS
 import traceback
+from sqlalchemy.orm import exc
 import oauth
 
 load_dotenv('./env/mail.env')
@@ -283,7 +285,7 @@ def sendBulkInvoice(id):
 
     bi = db.getBulkInvoice(session, id)
     sent_count = 0
-    for success, result in bi.get_messages(force=force, skip=skip):
+    for success, result in bi.get_messages(generator=True, force=force, skip=skip):
         if success:
             mail.send(result)
             sent_count += 1
@@ -293,8 +295,8 @@ def sendBulkInvoice(id):
     return res
 
 
-@ app.route('/bulk/<id>:generate', methods=['POST'])
-def generateBulkInvoice(id):
+@ app.route('/bulk/<id>.zip', methods=['GET'])
+def generateBulkInvoiceZip(id):
     session = g.session
 
     bi = db.getBulkInvoice(session, id)
@@ -313,6 +315,33 @@ def generateBulkInvoice(id):
         attachment_filename='data.zip'
     )
 
+@ app.route('/bulk/<id>.pdf', methods=['GET'])
+def generateBulkInvoicePDF(id):
+    session = g.session
+
+    bi = db.getBulkInvoice(session, id)
+
+    data = io.BytesIO()
+    merger = PdfFileMerger()
+    for name, string in bi.generate():
+        merger.append(PdfFileReader(io.BytesIO(string)))
+    merger.write(data)
+    data.seek(0)
+
+    return send_file(
+        data,
+        mimetype='application/pdf',
+        as_attachment=False,
+        attachment_filename='data.pdf'
+    )
+
+@ app.route('/bulk/<id>:cleanup', methods=['POST'])
+def cleanupBulkInvoice(id):
+    session = g.session
+    bi = db.getBulkInvoice(session, id)
+    missing = bi.cleanup()
+    session.commit()
+    return jsonify(annulled=invoicesSchema.dump(missing))
 
 @ app.route('/bulk/<id>/invoice', methods=['GET'])
 def getInvoices(id):
@@ -386,14 +415,17 @@ def uploadPayments():
     session = g.session
     payments = request.json['payments']
     updated_count = 0
+    not_found = 0
     for p in payments:
-        # TODO: should store payment (make sure it has not been stored already)
-        invoice = db.getInvoiceWithESR(session, p['esr'])
-        if (invoice != 'paid'):
-            invoice.status = 'paid'
-            updated_count += 1
+        try:
+            invoice = db.getInvoiceWithESR(session, p['esr'])
+            if (invoice != 'paid'):
+                invoice.status = 'paid'
+                updated_count += 1
+        except exc.NoResultFound:
+            not_found += 1
     session.commit()
-    return jsonify(updated_count=updated_count)
+    return jsonify(marked_paid=updated_count, not_found=not_found)
 
 
 @ app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))

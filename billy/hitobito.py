@@ -5,7 +5,7 @@ import error
 import env
 from oauth import dance
 from requests.adapters import HTTPAdapter
-
+from loguru import logger
 # Use this - once db.scout.ch provides the API scope
 #################################################################
 
@@ -114,6 +114,11 @@ def parseHitobitoPerson(person):
         'emails': getEmails(person),
     }
 
+def getRawPerson(person_id):
+    response = hitobito('people/{person}'.format(person=person_id))
+    p = getHitobitoPerson(response)
+    p['list_emails'] = getEmails(p)
+    return p
 
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))

@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { selfConfigure } from "./features/backend/backendSlice";
 import { BulkInvoiceList } from "./pages/BulkInvoiceList";
 import { fetchBulks } from "./features/bulk/bulkSlice";
-import { ErrorView } from "./features/error/errorView";
+import { PopupView } from "./features/popup/popupView";
 import { showCreateBulkView } from "./features/bulk/bulkSlice";
 import { Navbar, Nav, Button } from 'react-bootstrap';
 import { BulkCreateView } from "./features/bulk/bulkCreateView";
@@ -40,7 +40,7 @@ function App() {
               </Nav>
             </Navbar.Collapse>
           </Navbar>
-          <ErrorView />
+          <PopupView />
           <BulkView />
           <BulkInvoiceList />
           <BulkCreateView />

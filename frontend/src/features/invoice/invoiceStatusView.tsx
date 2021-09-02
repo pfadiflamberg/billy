@@ -1,4 +1,4 @@
-import { useAppSelector, useAppDispatch } from "../../app/hooks";
+import { useAppSelector } from "../../app/hooks";
 import { ProgressBar } from 'react-bootstrap';
 import { selectInvoices } from "./invoiceSlice";
 
@@ -8,7 +8,6 @@ function fraction(total: number, count: number): number {
 
 export function InvoiceStatusView() {
 
-    const dispatch = useAppDispatch();
     const invoices = useAppSelector(selectInvoices);
 
     var invoiceList = Object.values(invoices);
