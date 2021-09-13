@@ -270,7 +270,7 @@ class Invoice(Base):
                       env.MAIL_DEFAULT_SENDER])
 
         # double new line for proper rendering in Apple Mail
-        msg.body = mail_body + "\n\n"
+        msg.body = self.insert_variables(mail_body) + "\n\n"
         _, string = self.generate()
         msg.attach("Rechnung.pdf", "application/pdf", string)
         self.last_email_sent = datetime.datetime.utcnow()
