@@ -283,9 +283,11 @@ def sendBulkInvoice(id):
     force = bool(request.args.get('force', 0, type=int))
     skip = bool(request.args.get('skip', 0, type=int))
 
+    mail_body = request.json['mail_body']
+
     bi = db.getBulkInvoice(session, id)
     sent_count = 0
-    for success, result in bi.get_messages(generator=True, force=force, skip=skip):
+    for success, result in bi.complete_messages(mail_body, generator=True, force=force, skip=skip):
         if success:
             mail.send(result)
             sent_count += 1
@@ -314,6 +316,7 @@ def generateBulkInvoiceZip(id):
         as_attachment=True,
         attachment_filename='data.zip'
     )
+
 
 @ app.route('/bulk/<id>.pdf', methods=['GET'])
 def generateBulkInvoicePDF(id):
@@ -392,11 +395,13 @@ def sendInvoice(bulk_id, id):
 
     force = bool(request.args.get('force', 0, type=int))
 
+    mail_body = request.json['mail_body']
+
     invoice = db.getInvoice(session, id)
 
     invoice.bulk_invoice.prepare()
 
-    success, result = invoice.get_message(force=force)
+    success, result = invoice.complete_message(mail_body, force=force)
     if success:
         mail.send(result)
     session.commit()
@@ -412,7 +417,7 @@ def uploadPayments():
     for p in payments:
         try:
             invoice = db.getInvoiceWithESR(session, p['esr'])
-            if (invoice != 'paid'):
+            if (invoice.status != 'paid'):
                 invoice.status = 'paid'
                 updated_count += 1
         except exc.NoResultFound:
