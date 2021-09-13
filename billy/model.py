@@ -87,13 +87,13 @@ class BulkInvoice(Base):
         # TODO: add functionality
         self.status = 'closed'
 
-    def get_messages(self, generator=False, force=False, skip=False):
+    def complete_messages(self, mail_body, generator=False, force=False, skip=False):
         self.prepare(skip=skip)
 
         if generator:
-            return (invoice.get_message(force) for invoice in self.invoices if invoice.status == "pending")
+            return (invoice.complete_message(mail_body, force) for invoice in self.invoices if invoice.status == "pending")
         else:
-            return [invoice.get_message(force) for invoice in self.invoices if invoice.status == "pending"]
+            return [invoice.complete_message(mail_body, force) for invoice in self.invoices if invoice.status == "pending"]
 
     def prepare(self, skip=False):
         mailinglist_members = hitobito.getMailingListRecipients(
@@ -101,10 +101,10 @@ class BulkInvoice(Base):
         # filter out new recipients that have been added to the mailing list after issuing
         active_ids = [invoice.recipient for invoice in self.invoices]
         self.people_list = dict(
-            filter(lambda r: r[0] in active_ids, mailinglist_members.items())) # recipients ^ mailinglist
+            filter(lambda r: r[0] in active_ids, mailinglist_members.items()))  # recipients ^ mailinglist
         # List of all recipient ids that are no longer in the mailing list, but are not annulled yet.
 
-        missing = [invoice for invoice in self.invoices 
+        missing = [invoice for invoice in self.invoices
                    if invoice.recipient not in mailinglist_members.keys() and invoice.status == 'pending']
         inaccessible = []
         # fetch individual participants that are have been removed from the mailing list via ID
@@ -116,8 +116,8 @@ class BulkInvoice(Base):
             else:
                 self.people_list[invoice.recipient] = returned_person
         if len(inaccessible) > 0:
-            raise error.InvoiceListError("Invoices not accessible", 
-                                         "Some recipients are no longer accessible, but their Invoices are still pending", 
+            raise error.InvoiceListError("Invoices not accessible",
+                                         "Some recipients are no longer accessible, but their Invoices are still pending",
                                          [recipient.name for recipient in inaccessible])
         # parse all participents to make sure they are valid
         if not skip:
@@ -135,7 +135,7 @@ class BulkInvoice(Base):
     def cleanup(self):
         mailinglist_members = hitobito.getMailingListRecipients(
             self.mailing_list)
-        missing = [invoice for invoice in self.invoices 
+        missing = [invoice for invoice in self.invoices
                    if invoice.recipient not in mailinglist_members.keys() and invoice.status == 'pending']
         for invoice in missing:
             invoice.status = "annulled"
@@ -229,8 +229,7 @@ class Invoice(Base):
 
     @hybrid_property
     def mail_body(self):
-        # double new line for proper rendering in Apple Mail
-        return self.insert_variables(self.bulk_invoice.text_mail + "\n\n")
+        return self.insert_variables(self.bulk_invoice.text_mail)
 
     @hybrid_property
     def invoice_body(self):
@@ -256,7 +255,7 @@ class Invoice(Base):
 
         return debtor['name'], string
 
-    def get_message(self, force=False):
+    def complete_message(self, mail_body, force=False):
         recently_sent = self.last_email_sent and datetime.datetime.utcnow(
         ) - self.last_email_sent < datetime.timedelta(days=30)
         if recently_sent and not force:
@@ -270,7 +269,8 @@ class Invoice(Base):
         msg = Message(self.bulk_invoice.title, recipients=recipient_emails, bcc=[
                       env.MAIL_DEFAULT_SENDER])
 
-        msg.body = self.mail_body
+        # double new line for proper rendering in Apple Mail
+        msg.body = mail_body + "\n\n"
         _, string = self.generate()
         msg.attach("Rechnung.pdf", "application/pdf", string)
         self.last_email_sent = datetime.datetime.utcnow()
