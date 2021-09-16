@@ -85,7 +85,7 @@ def getMailingListRecipients(mailing_list_url):
 def parseMailingListPerson(person, verify=True):
 
     if verify:
-        if len(person['list_emails']) < 1:
+        if len(getEmails(person)) < 1:
             raise error.RecipientRequiresEmail(person['id'])
         for attr in ['address', 'zip_code', 'town']:
             if person[attr] and len(person[attr]) < 1:
@@ -98,7 +98,7 @@ def parseMailingListPerson(person, verify=True):
         'shortname': getShortname(person),
         'role': getRole(person),
         'addr': getAddress(person),
-        'emails': person['list_emails'],
+        'emails': getEmails(person),
     }
 
 
@@ -184,14 +184,16 @@ def getSalutation(hitobitoPerson):
 
 
 def getEmails(hitobitoPerson):
-    emails = list()
+    emails = []
     if 'linked' in hitobitoPerson and 'additional_emails' in hitobitoPerson['linked']:
-        emails = list(map(lambda p: p['email'],
-                          hitobitoPerson['linked']['additional_emails']))
+        emails = [entry['email'] for entry in hitobitoPerson['linked']['additional_emails']]
     if hitobitoPerson['email']:
         emails.append(hitobitoPerson['email'])
+    if 'list_emails' in hitobitoPerson:
+        emails += hitobitoPerson['list_emails']
     # sort and remove duplicates
-    emails = list(set(emails)).sort()
+    emails = list(set(emails))
+    emails.sort()
     return emails
 
 
