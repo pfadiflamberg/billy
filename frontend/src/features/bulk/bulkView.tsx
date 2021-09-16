@@ -26,11 +26,15 @@ export function BulkView() {
     function DaysTillDue(bulk: Bulk) {
         var due_date = new Date(bulk.due_date);
         var date_now = new Date();
-        var diff = Math.abs(due_date.getTime() - date_now.getTime());
+        var diff = due_date.getTime() - date_now.getTime();
+        if (diff < 0) {
+            return 'overdue since ' + Math.abs(Math.floor(diff / (1000 * 60 * 60 * 24)));
+        }
         return Math.ceil(diff / (1000 * 60 * 60 * 24));
     }
 
     var skipIncomplete: boolean = false;
+    var email_text: string = (bulk) ? bulk.text_mail : '';
 
     return (
         <div>
@@ -44,13 +48,23 @@ export function BulkView() {
                         </Modal.Header>
                         <Modal.Body>
                             Sending <em>{bulk.title}</em> to {Object.entries(invoices).filter(([k, b]) => b.status === 'pending').length}/{Object.keys(invoices).length} pending recipients due in {DaysTillDue(bulk)} days.
+                            <Form.Group>
+                                <Form.Label>Email:</Form.Label>
+                                <Form.Control as="textarea"
+                                    name="text_mail"
+                                    type="text"
+                                    style={{ height: '300px' }}
+                                    onChange={e => email_text = e.target.value}
+                                    defaultValue={email_text}>
+                                </Form.Control>
+                            </Form.Group>
                             <Form>
                                 <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => skipIncomplete = e.target.checked} />
                             </Form>
                         </Modal.Body>
                         <Modal.Footer>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, { skip: Number(skipIncomplete) })) : true} >
+                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, email_text, { skip: Number(skipIncomplete) })) : true} >
                                     {isSendingEmail ? 'Sending...' : 'Send'}
                                 </Button>
                             </div>

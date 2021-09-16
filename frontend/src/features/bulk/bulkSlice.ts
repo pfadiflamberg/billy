@@ -1,6 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
-import {handleError} from "../popup/popupSlice";
+import {handleError, newPopup, Popup} from "../popup/popupSlice";
 import {fetchInvoicesByBulk} from "../invoice/invoiceSlice";
 import {selectBackendBase} from "../backend/backendSlice";
 import { request } from "../../app/request";
@@ -39,6 +39,29 @@ const initialState: BulkState = {
     showUpdateBulkView: false,
     showEmailPreviewBulkView: false,
     sendingEmail: false,
+}
+
+function variableCheck(...args: string[]) {
+    const ALLOWED_VARIABLES = ['title', 'due_date', 'year_issued', 'date_issued', 'recipient_name', 'recipient_shortname', 'sender_name', 'sender_shortname']
+    var unknownVariables = args.map(text => {
+        return [ ...text.matchAll(/{{ *([^} ]*) *}}/gm) ].map(match => match[1]).filter(v => !ALLOWED_VARIABLES.includes(v));
+    }).flat()
+    var unknownVariablesWCount: { [Key: string]: number } = {};
+    for (const v in unknownVariables) {
+        unknownVariablesWCount[unknownVariables[v]] ? unknownVariablesWCount[unknownVariables[v]]++ : unknownVariablesWCount[unknownVariables[v]] = 1;
+    }
+    var errors = []
+    for (let key in unknownVariablesWCount) {
+        var str = ""
+        const count = unknownVariablesWCount[key];
+        if (count > 1) {
+            str += " (" + count + "x)"
+        }
+        errors.push({description: key + str})
+    }
+    if (errors.length > 0) {
+        return {title: 'Invalid Variable', description: 'Invalid variable used. Use: ' + ALLOWED_VARIABLES.join(', ') + '. You used:', details: errors};
+    }
 }
 
 export const bulkSlice = createSlice({
@@ -130,30 +153,14 @@ export const updateBulk = (bulk: Bulk): AppThunk => async (
     getState
 ) => {
 
+    const BACKEND_BASE = selectBackendBase(getState());
+
     // check for invalid variables
-    const ALLOWED_VARIABLES = ['title', 'due_date', 'year_issued', 'date_issued', 'recipient_name', 'recipient_shortname', 'sender_name', 'sender_shortname']
-    var unknownVariables = [bulk.text_mail, bulk.text_invoice, bulk.text_reminder].map(text => {
-        return [ ...text.matchAll(/{{ *([^} ]*) *}}/gm) ].map(match => match[1]).filter(v => !ALLOWED_VARIABLES.includes(v));
-    }).flat()
-    var unknownVariablesWCount: { [Key: string]: number } = {};
-    for (const v in unknownVariables) {
-        unknownVariablesWCount[unknownVariables[v]] ? unknownVariablesWCount[unknownVariables[v]]++ : unknownVariablesWCount[unknownVariables[v]] = 1;
-    }
-    var errors = []
-    for (let key in unknownVariablesWCount) {
-        var str = ""
-        const count = unknownVariablesWCount[key];
-        if (count > 1) {
-            str += " (" + count + "x)"
-        }
-        errors.push({description: key + str})
-    }
-    if (errors.length > 0) {
-        dispatch(handleError({title: 'Invalid Variable', description: 'Invalid variable used. Use: ' + ALLOWED_VARIABLES.join(', ') + '. You used:', details: errors}));
+    var error = variableCheck(bulk.text_mail, bulk.text_invoice, bulk.text_reminder);
+    if (error) {
+        dispatch(handleError(error));
         return
     }
-
-    const BACKEND_BASE = selectBackendBase(getState());
 
     request(new URL(bulk.name, BACKEND_BASE), 'PUT', bulk)
         .then(r => {
@@ -213,21 +220,31 @@ export const issueBulk = (bulk: Bulk): AppThunk => async (
         .catch(e => dispatch(handleError(e)));
 }
 
-export const sendBulk = (bulk: Bulk, options = {}): AppThunk => async (
+export const sendBulk = (bulk: Bulk, message: string, options = {}): AppThunk => async (
     dispatch,
     getState,
 ) => {
 
     const BACKEND_BASE = selectBackendBase(getState());
-    dispatch(setSendingEmail(true));
+    var error = variableCheck(message);
+    if (error) {
+        dispatch(handleError(error));
+        return
+    }
 
     var url = new URL(bulk.name + ":send", BACKEND_BASE);
     Object.entries(options).forEach(option => url.searchParams.append(option[0], String(option[1])));
 
-    request(url, 'POST')
+    type BulkSendResponse= {
+        sent_count: number;
+    }
+
+    dispatch(setSendingEmail(true));
+    request(url, 'POST', {'mail_body': message})
         .then(r => {
-            // TODO: display the count of emails sent
-            // should first create a reusable notification component
+            const resp = r as unknown as BulkSendResponse;
+            var popup = {title: 'Email Sent', description: resp.sent_count + ' emails sent.'} as Popup;
+            dispatch(newPopup(popup))
             dispatch(showEmailPreviewBulkView(false));
         })
         .catch(e => dispatch(handleError(e)))
