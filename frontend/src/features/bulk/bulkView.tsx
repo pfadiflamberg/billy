@@ -30,7 +30,7 @@ export function BulkView() {
         if (diff < 0) {
             return 'overdue since ' + Math.abs(Math.floor(diff / (1000 * 60 * 60 * 24)));
         }
-        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        return 'due in ' + Math.ceil(diff / (1000 * 60 * 60 * 24));
     }
 
     var skipIncomplete: boolean = false;
@@ -47,7 +47,7 @@ export function BulkView() {
                             <Modal.Title>Send as Email.</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            Sending <em>{bulk.title}</em> to {Object.entries(invoices).filter(([k, b]) => b.status === 'pending').length}/{Object.keys(invoices).length} pending recipients due in {DaysTillDue(bulk)} days.
+                            Sending <em>{bulk.title}</em> to {Object.entries(invoices).filter(([k, b]) => b.status === 'pending').length}/{Object.keys(invoices).length} pending recipients {DaysTillDue(bulk)} days.
                             <Form.Group>
                                 <Form.Label>Email:</Form.Label>
                                 <Form.Control as="textarea"
