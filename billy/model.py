@@ -233,7 +233,7 @@ class Invoice(Base):
 
     @hybrid_property
     def invoice_body(self):
-        if datetime.fromtimestamp(self.bulk_invoice.due_date).date() < datetime.datetime.utcnow().date():
+        if datetime.datetime.fromtimestamp(self.bulk_invoice.due_date).date() < datetime.datetime.utcnow().date():
             body = self.bulk_invoice.text_reminder
         else:
             body = self.bulk_invoice.text_invoice
