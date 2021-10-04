@@ -326,7 +326,7 @@ def generateBulkInvoicePDF(id):
 
     data = io.BytesIO()
     merger = PdfFileMerger()
-    for name, string in bi.generate():
+    for name, string in bi.generate(skip=True):
         merger.append(PdfFileReader(io.BytesIO(string)))
     merger.write(data)
     data.seek(0)
