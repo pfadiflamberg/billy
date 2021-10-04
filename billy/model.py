@@ -233,7 +233,11 @@ class Invoice(Base):
 
     @hybrid_property
     def invoice_body(self):
-        return self.insert_variables(self.bulk_invoice.text_invoice)
+        if datetime.fromtimestamp(self.bulk_invoice.due_date).date() < datetime.datetime.utcnow().date():
+            body = self.bulk_invoice.text_reminder
+        else:
+            body = self.bulk_invoice.text_invoice
+        return self.insert_variables(body)
 
     @hybrid_property
     def reminder_body(self):
