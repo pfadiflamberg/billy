@@ -141,8 +141,8 @@ class BulkInvoice(Base):
             invoice.status = "annulled"
         return missing
 
-    def generate(self, generator=False):
-        self.prepare()
+    def generate(self, generator=False, skip=False):
+        self.prepare(skip=skip)
 
         if generator:
             return (invoice.generate() for invoice in self.invoices if invoice.status == "pending")
