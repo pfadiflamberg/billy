@@ -255,7 +255,7 @@ class Invoice(Base):
 
         string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=env.BANK_IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
-        }, ref=self.esr, hitobito_debtor=debtor, hitobito_sender=self.bulk_invoice.user, date=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
+        }, ref=self.esr, hitobito_debtor=debtor, hitobito_sender=self.bulk_invoice.user, date=datetime.datetime.utcnow(), date_issued=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
 
         return debtor['name'], string
 

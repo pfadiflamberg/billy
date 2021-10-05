@@ -34,13 +34,20 @@
       .recipient {
         font-size: 10px;
       }
-      .info {
+      .date {
         position: absolute;
         left: 20pt;
         top: 50pt;
         width: 200pt;
         font-size: 10px;
         line-height: 2;
+      }
+      .info {
+        position: absolute;
+        left: 20pt;
+        top: 70pt;
+        width: 200pt;
+        font-size: 8px;
       }
       .text {
         position: absolute;
@@ -76,6 +83,7 @@
         style="width: 80pt"
       />
     </div>
+    <div class="date">{{ date }}</div>
     <div class="info">{{ info }}</div>
     <div class="window">
       <div class="sender">{{ sender_address }}</div>
