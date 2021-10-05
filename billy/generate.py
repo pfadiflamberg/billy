@@ -22,7 +22,7 @@ def formatSenderAddress(address):
     return ', '.join(lines[:DELIMINATER_POSITION]) + '<br>' + ', '.join(lines[DELIMINATER_POSITION:])
 
 
-def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_sender, ref, date, due_date, amount=None):
+def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_sender, ref, date, date_issued, due_date, amount=None):
 
     invoice = INVOICE_TEMPLATE
 
@@ -50,9 +50,12 @@ def invoicePDF(title, text_body, account, creditor, hitobito_debtor, hitobito_se
         ' '.join([hitobito_debtor['addr']['zip'],
                  hitobito_debtor['addr']['town']])
     ]))
-    invoice = invoice.replace('{{ info }}', '{place}, {date}'.format(
+    invoice = invoice.replace('{{ date }}', '{place}, {date}'.format(
         place=hitobito_sender['addr']['town'],
-        date=date.strftime('%d. %B %Y'),
+        date=date.strftime('%-d. %B %Y'),
+    ))
+    invoice = invoice.replace('{{ info }}', 'Rechnung vom: {date_issued}'.format(
+        date_issued=date_issued.strftime('%d.%m.%Y'),
     ))
     invoice = invoice.replace('{{ title }}', title)
     invoice = invoice.replace(
