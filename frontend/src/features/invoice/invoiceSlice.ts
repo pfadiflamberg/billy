@@ -2,7 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import {handleError} from "../popup/popupSlice";
 import {selectBackendBase} from "../backend/backendSlice";
-import { request } from "../../app/request";
+import { request, checkRequest } from "../../app/request";
 import { Bulk } from "../bulk/bulkSlice";
 
 const API_PATH_INVOICE = 'invoice'
@@ -77,6 +77,21 @@ export const annulInvoice = (invoice: Invoice): AppThunk => async (
         .then(r => {
             const updated_invoice = r as unknown as Invoice;
             dispatch(setInvoice(updated_invoice));
+        })
+        .catch(e => dispatch(handleError(e)));
+}
+
+export const viewPDF = (invoice: Invoice): AppThunk => async (
+    dispatch,
+    getState,
+) => {
+
+    const BACKEND_BASE = selectBackendBase(getState());
+    // we check if API will respond without error before redirecting the user
+    var url = new URL(invoice.name + ".pdf", BACKEND_BASE);
+    checkRequest(url)
+        .then(r => {
+            window.open(url.toString(), "_self");
         })
         .catch(e => dispatch(handleError(e)));
 }
