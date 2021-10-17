@@ -1,6 +1,5 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { selectBackendBase } from "../backend/backendSlice";
-import { selectInvoices, annulInvoice } from "./invoiceSlice";
+import { selectInvoices, annulInvoice, viewPDF } from "./invoiceSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
 function badgeVariantForStatus(status: string): string {
@@ -21,8 +20,6 @@ export function InvoiceListView(props: any) {
 
 
     const dispatch = useAppDispatch();
-
-    const BACKEND_BASE = useAppSelector(selectBackendBase);
     const invoices = useAppSelector(selectInvoices);
 
     var keys = Object.keys(invoices);
@@ -69,8 +66,7 @@ export function InvoiceListView(props: any) {
                                                 variant={badgeVariantForStatus(invoice.status)}
                                                 onClick={e => e.stopPropagation()}
                                             >
-                                                <Dropdown.Item onClick={e => window.open(BACKEND_BASE + invoice.name + '.pdf')}>Get PDF</Dropdown.Item>
-                                                <Dropdown.Item disabled onClick={e => console.log('TODO')}>Send as Email (TODO)</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => dispatch(viewPDF(invoice))}>ViewPDF</Dropdown.Item>
                                                 {invoice.status === 'pending' &&
                                                     <div>
                                                         <Dropdown.Divider />

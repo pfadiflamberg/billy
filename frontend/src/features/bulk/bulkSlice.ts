@@ -3,7 +3,7 @@ import {AppThunk, RootState} from "../../app/store";
 import {handleError, newPopup, Popup} from "../popup/popupSlice";
 import {fetchInvoicesByBulk} from "../invoice/invoiceSlice";
 import {selectBackendBase} from "../backend/backendSlice";
-import { request } from "../../app/request";
+import { request, checkRequest } from "../../app/request";
 
 const API_PATH_BULK = 'bulk'
 
@@ -249,6 +249,21 @@ export const sendBulk = (bulk: Bulk, message: string, options = {}): AppThunk =>
         })
         .catch(e => dispatch(handleError(e)))
         .finally(() => dispatch(setSendingEmail(false)));
+}
+
+export const viewPDFs = (bulk: Bulk): AppThunk => async (
+    dispatch,
+    getState,
+) => {
+
+    const BACKEND_BASE = selectBackendBase(getState());
+    // we check if API will respond without error before redirecting the user
+    var url = new URL(bulk.name + ".pdf", BACKEND_BASE);
+    checkRequest(url)
+        .then(r => {
+            window.open(url.toString(), "_self");
+        })
+        .catch(e => dispatch(handleError(e)));
 }
 
 export const selectBulks = (state: RootState) => state.bulk.items;

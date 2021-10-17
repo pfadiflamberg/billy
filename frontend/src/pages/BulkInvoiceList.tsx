@@ -1,6 +1,5 @@
 import { useAppSelector, useAppDispatch } from "../app/hooks";
-import { selectBackendBase } from "../features/backend/backendSlice";
-import { selectBulks } from "../features/bulk/bulkSlice";
+import { selectBulks, viewPDFs } from "../features/bulk/bulkSlice";
 import { selectBulk, duplicateBulk } from "../features/bulk/bulkSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
@@ -21,7 +20,6 @@ export function BulkInvoiceList() {
 
     const dispatch = useAppDispatch();
     const bulks = useAppSelector(selectBulks);
-    const BACKEND_BASE = useAppSelector(selectBackendBase);
 
     return (
         <div className="BulkInvoiceList">
@@ -60,7 +58,7 @@ export function BulkInvoiceList() {
                                                 }
                                                 {bulk.status === 'issued' &&
                                                     <div>
-                                                        <Dropdown.Item onClick={e => window.open(BACKEND_BASE + bulk.name + '.pdf')}>Download PDFs</Dropdown.Item>
+                                                        <Dropdown.Item onClick={e => dispatch(viewPDFs(bulk))}>View PDFs</Dropdown.Item>
                                                         <Dropdown.Item onClick={e => { dispatch(selectBulk(bulk)) }}>Send as Email</Dropdown.Item>
                                                     </div>
                                                 }
