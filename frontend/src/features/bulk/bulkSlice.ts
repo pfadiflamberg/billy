@@ -263,7 +263,10 @@ export const viewPDFs = (bulk: Bulk): AppThunk => async (
         .then(r => {
             window.open(url.toString(), "_self");
         })
-        .catch(e => dispatch(handleError(e)));
+        .catch(e => {
+            dispatch(selectBulk(bulk));
+            dispatch(handleError(e));
+        });
 }
 
 export const selectBulks = (state: RootState) => state.bulk.items;
