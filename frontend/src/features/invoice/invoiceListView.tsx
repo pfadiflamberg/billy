@@ -66,7 +66,7 @@ export function InvoiceListView(props: any) {
                                                 variant={badgeVariantForStatus(invoice.status)}
                                                 onClick={e => e.stopPropagation()}
                                             >
-                                                <Dropdown.Item onClick={e => dispatch(viewPDF(invoice))}>ViewPDF</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => dispatch(viewPDF(invoice))}>View PDF</Dropdown.Item>
                                                 {invoice.status === 'pending' &&
                                                     <div>
                                                         <Dropdown.Divider />
