@@ -45,6 +45,13 @@ class InvalidMailingListURL(BillyError):
                          "The provided mailing list {mailing_list} is not valid.".format(mailing_list=mailing_list_url), link=mailing_list_url)
 
 
+class MailingListHasNoRecipients(BillyError):
+
+    def __init__(self, mailing_list_url):
+        super().__init__("Mailing List has no recipients",
+                         "The provided mailing list {mailing_list} has no recipients.".format(mailing_list=mailing_list_url), link=mailing_list_url)
+
+
 def recipientLink(id):
     return os.path.join(env.HITOBITO_HOST, env.HITOBITO_LANG, 'people', id)
 
