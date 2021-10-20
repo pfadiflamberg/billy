@@ -79,7 +79,10 @@ def getMailingListRecipients(mailing_list_url):
     except:
         raise error.InvalidMailingListURL(mailing_list_url)
     response = hitobito(path)
-    return {int(p['id']): p for p in response['linked']['people']}
+    try:
+        return {int(p['id']): p for p in response['linked']['people']}
+    except:
+        raise error.MailingListHasNoRecipients(mailing_list_url)
 
 
 def parseMailingListPerson(person, verify=True):
@@ -114,11 +117,13 @@ def parseHitobitoPerson(person):
         'emails': getEmails(person),
     }
 
+
 def getRawPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
     p = getHitobitoPerson(response)
     p['list_emails'] = getEmails(p)
     return p
+
 
 def getPerson(person_id):
     response = hitobito('people/{person}'.format(person=person_id))
@@ -186,7 +191,8 @@ def getSalutation(hitobitoPerson):
 def getEmails(hitobitoPerson):
     emails = []
     if 'linked' in hitobitoPerson and 'additional_emails' in hitobitoPerson['linked']:
-        emails = [entry['email'] for entry in hitobitoPerson['linked']['additional_emails']]
+        emails = [entry['email']
+                  for entry in hitobitoPerson['linked']['additional_emails']]
     if hitobitoPerson['email']:
         emails.append(hitobitoPerson['email'])
     if 'list_emails' in hitobitoPerson:
