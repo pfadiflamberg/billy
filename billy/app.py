@@ -428,8 +428,7 @@ def uploadPayments():
 
 @ app.route('{path}/login'.format(path=oauth.UNPROTECTED_PATH))
 def login():
-    if not oauth.dance.session.authorized:
-        return redirect(url_for('billy.login'))
+    return redirect(url_for('billy.login'))
 
 
 @ app.before_request
