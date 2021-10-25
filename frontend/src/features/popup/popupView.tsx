@@ -1,6 +1,6 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { clearPopups, selectPopups, Popup } from "./popupSlice";
-import { Modal, ListGroup } from 'react-bootstrap';
+import { Button, ListGroup, Modal } from 'react-bootstrap';
 import { InvoiceListView } from "../invoice/invoiceListView";
 
 export function PopupView() {
@@ -37,6 +37,14 @@ export function PopupView() {
                             <InvoiceListView with_names={popup.details} />
                         }
                     </Modal.Body>
+                    {popup.action &&
+                        <Modal.Footer>
+                            <Button onClick={(e) => {
+                                popup.action.func(dispatch);
+                                dispatch(clearPopups());
+                            }}>{popup.action.label}</Button>
+                        </Modal.Footer>
+                    }
                 </div>
             }
         </Modal>

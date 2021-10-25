@@ -244,7 +244,7 @@ export const sendBulk = (bulk: Bulk, message: string, options = {}): AppThunk =>
         .then(r => {
             const resp = r as unknown as BulkSendResponse;
             var popup = {title: 'Email Sent', description: resp.sent_count + ' emails sent.'} as Popup;
-            dispatch(newPopup(popup))
+            dispatch(newPopup(popup));
             dispatch(showEmailPreviewBulkView(false));
         })
         .catch(e => dispatch(handleError(e)))
