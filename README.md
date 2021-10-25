@@ -4,7 +4,7 @@
 
 ### Setup
 
-For user authentication and to access hitobito the app needs to be registered as an oauth application on hitobito. The application needs all available scopes and a callback URL (REDIRECT_URL_LOGIN) of the following form `API_SERVER/oauth/billy/authorized` (e.g. `http://localhost:5000/oauth/billy/authorized `).
+For user authentication and to access hitobito the app needs to be registered as an oauth application on hitobito. The application needs all available scopes and a callback URL (REDIRECT_URL_LOGIN) of the following form `API_SERVER/oauth/billy/authorized` (e.g. `http://localhost:4000/oauth/billy/authorized `).
 
 In `env/hitobito.env` the following variables need to be defined:
 
@@ -88,7 +88,7 @@ server {
     server_name billy.flamberg.ch; # managed by Certbot
 
     location / {
-		proxy_pass http://127.0.0.1:5000/;
+		proxy_pass http://127.0.0.1:4000/;
 
 		proxy_set_header Host $host:1921;
 		proxy_set_header X-Forwarded-Proto https;

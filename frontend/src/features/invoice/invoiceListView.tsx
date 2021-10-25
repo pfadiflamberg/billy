@@ -1,5 +1,5 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
-import { selectInvoices, annulInvoice, viewPDF } from "./invoiceSlice";
+import { selectInvoices, annulInvoice, viewPDF, Invoice } from "./invoiceSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
 function badgeVariantForStatus(status: string): string {
@@ -20,21 +20,25 @@ export function InvoiceListView(props: any) {
 
 
     const dispatch = useAppDispatch();
-    const invoices = useAppSelector(selectInvoices);
+    const allInvoices = useAppSelector(selectInvoices);
 
-    var keys = Object.keys(invoices);
-
+    var invoices = Object.values(allInvoices).sort((a: Invoice, b: Invoice) => {
+        if (a.status < b.status) {
+            return 1;
+        } else {
+            return -1;
+        }
+    });
     if (props.with_names) {
-        keys = keys.filter(k => props.with_names.includes(k));
+        invoices = invoices.filter(i => props.with_names.includes(i.name));
     }
 
     return (
         <div className="InvoiceListView">
             <ListGroup>
-                {keys.map((key) => {
-                    const invoice = invoices[key];
+                {invoices.map((invoice) => {
                     return (
-                        <ListGroup.Item key={key}>
+                        <ListGroup.Item key={invoice.name}>
                             <Row>
                                 <Col>
                                     <div className="BulkInvoiceListTitle">
