@@ -2,12 +2,18 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import { unauthenticated } from "../auth/authSlice";
 
+export type PopupAction = {
+    label: string,
+    func: (dispatch: any) => void,
+}
+
 export type Popup = {
     title: string,
     description: string,
     details: any,
     details_type: string,
     link: string,
+    action: PopupAction,
 }
 
 interface ErrorState {

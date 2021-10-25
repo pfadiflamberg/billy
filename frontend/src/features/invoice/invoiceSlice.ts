@@ -1,6 +1,6 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
-import {handleError} from "../popup/popupSlice";
+import {handleError, newPopup, Popup, PopupAction} from "../popup/popupSlice";
 import {selectBackendBase} from "../backend/backendSlice";
 import { request, checkRequest } from "../../app/request";
 import { Bulk } from "../bulk/bulkSlice";
@@ -73,12 +73,22 @@ export const annulInvoice = (invoice: Invoice): AppThunk => async (
 
     const BACKEND_BASE = selectBackendBase(getState());
 
-    request(new URL(invoice.name + ":annul", BACKEND_BASE), 'POST')
-        .then(r => {
-            const updated_invoice = r as unknown as Invoice;
-            dispatch(setInvoice(updated_invoice));
-        })
-        .catch(e => dispatch(handleError(e)));
+    var action: PopupAction = {
+        label: 'Annul',
+        func: ((dispatch) => {
+                request(new URL(invoice.name + ":annul", BACKEND_BASE), 'POST')
+                .then(r => {
+                    const updated_invoice = r as unknown as Invoice;
+                    dispatch(setInvoice(updated_invoice));
+                })
+                .catch(e => dispatch(handleError(e)));
+        }),
+    };
+
+    var popup = {title: 'Confirm Annulation', description: 'This action cannot be undone.', action: action} as Popup;
+    dispatch(newPopup(popup));
+
+
 }
 
 export const viewPDF = (invoice: Invoice): AppThunk => async (
