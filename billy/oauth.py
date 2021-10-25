@@ -1,7 +1,6 @@
 import env
 
 from http import HTTPStatus
-from dotenv import load_dotenv
 from flask_dance.consumer import OAuth2ConsumerBlueprint, oauth_authorized
 
 dance = OAuth2ConsumerBlueprint(
@@ -30,3 +29,9 @@ def handle_login(blueprint, token):
 
     if str(response.json()['id']) not in env.HITOBITO_ALLOWED_USERS.split(','):
         raise Exception(HTTPStatus.FORBIDDEN)
+
+
+def isAuthorized():
+    if dance.session.authorized and 0 < dance.token['expires_in']:
+        return True
+    return False
