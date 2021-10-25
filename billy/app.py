@@ -437,9 +437,10 @@ def check():
         return
     if request.path.startswith(oauth.UNPROTECTED_PATH):
         return
-    if not oauth.dance.session.authorized or oauth.dance.token['expires_in'] < 0:
-        return make_response(
-            jsonify(code=HTTPStatus.UNAUTHORIZED, message=HTTPStatus.UNAUTHORIZED.phrase), HTTPStatus.UNAUTHORIZED)
+    if oauth.isAuthorized():
+        return
+    return make_response(
+        jsonify(code=HTTPStatus.UNAUTHORIZED, message=HTTPStatus.UNAUTHORIZED.phrase), HTTPStatus.UNAUTHORIZED)
 
 
 if __name__ == '__main__':
