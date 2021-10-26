@@ -58,7 +58,7 @@ export function BulkInvoiceList() {
                                                 }
                                                 {bulk.status === 'issued' &&
                                                     <div>
-                                                        <Dropdown.Item onClick={e => dispatch(viewPDFs(bulk))}>View PDFs</Dropdown.Item>
+                                                        <Dropdown.Item onClick={e => dispatch(viewPDFs(bulk))}>Pending invoices as PDF</Dropdown.Item>
                                                         <Dropdown.Item onClick={e => { dispatch(selectBulk(bulk)) }}>Send as Email</Dropdown.Item>
                                                     </div>
                                                 }
