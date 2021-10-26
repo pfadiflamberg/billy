@@ -16,7 +16,9 @@ name = env.get('MYSQL_DB')
 engine_string = "mysql+mysqldb://%s:%s@%s:%s/%s?charset=utf8mb4" % (
     username, password, address, port, name)
 engine = create_engine(engine_string, echo=False,
-                       convert_unicode=True)
+                       convert_unicode=True,
+                       # close connections after 1h - as connections timeout at the database
+                       pool_recycle=3600)
 
 # Create a sessionmaker
 Session = sessionmaker(bind=engine)
