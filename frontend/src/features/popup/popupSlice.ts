@@ -1,5 +1,4 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
-import { Key } from "hoist-non-react-statics/node_modules/@types/react";
 import {AppThunk, RootState} from "../../app/store";
 import { unauthenticated } from "../auth/authSlice";
 
