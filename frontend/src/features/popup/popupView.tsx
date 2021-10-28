@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { clearPopups, selectPopups, Popup } from "./popupSlice";
+import { selectPopups, removePopup, Popup } from "./popupSlice";
 import { Button, ListGroup, Modal } from 'react-bootstrap';
 import { InvoiceListView } from "../invoice/invoiceListView";
 
@@ -8,10 +8,11 @@ export function PopupView() {
     const dispatch = useAppDispatch();
     const popups = useAppSelector(selectPopups);
 
-    var popup = popups[popups.length - 1];
+    var index = popups.length - 1;
+    var popup = popups[index];
 
     return (
-        <Modal show={popup !== undefined} onHide={() => dispatch(clearPopups())}>
+        <Modal show={popup !== undefined} onHide={() => dispatch(removePopup(index))}>
             {popup &&
                 <div>
                     <Modal.Header closeButton>
@@ -39,7 +40,7 @@ export function PopupView() {
                         <Modal.Footer>
                             <Button onClick={(e) => {
                                 popup.action.func(dispatch);
-                                dispatch(clearPopups());
+                                dispatch(removePopup(index));
                             }}>{popup.action.label}</Button>
                         </Modal.Footer>
                     }

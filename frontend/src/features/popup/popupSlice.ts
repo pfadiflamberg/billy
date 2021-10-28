@@ -31,13 +31,13 @@ export const popupSlice = createSlice({
         newPopup: (state, action: PayloadAction<Popup>) => {
             state.popups.push(action.payload);
         },
-        clearPopups: (state) => {
-            state.popups = []
-        }
+        removePopup: (state, action: PayloadAction<number>) => {
+            delete state.popups[action.payload];
+        },
     }
 })
 
-const { newPopup, clearPopups } = popupSlice.actions;
+const { newPopup, removePopup } = popupSlice.actions;
 
 export const handleError = (error: any): AppThunk => async (
     dispatch
@@ -52,7 +52,7 @@ export const handleError = (error: any): AppThunk => async (
     dispatch(newPopup(error));
 }
 
-export { newPopup, clearPopups };
+export { newPopup, removePopup };
 
 export const selectPopups = (state: RootState) => state.popup.popups;
 
