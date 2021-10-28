@@ -8,20 +8,18 @@ export function PopupView() {
     const dispatch = useAppDispatch();
     const popups = useAppSelector(selectPopups);
 
-    let hasErrors = 0 < popups.length;
-
-    var popup = popups[0];
+    var popup = popups[popups.length - 1];
 
     return (
-        <Modal show={hasErrors} onHide={() => dispatch(clearPopups())}>
-            {hasErrors &&
+        <Modal show={popup !== undefined} onHide={() => dispatch(clearPopups())}>
+            {popup &&
                 <div>
                     <Modal.Header closeButton>
                         <Modal.Title>{popup.title}</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         {popup.description}
-                        {popup.details && popup.details_type == 'ERROR' &&
+                        {popup.details && popup.details_type === 'ERROR' &&
                             <ListGroup>
                                 {popup.details.map((err: Popup) => {
                                     return (
@@ -33,7 +31,7 @@ export function PopupView() {
                                 })}
                             </ListGroup>
                         }
-                        {popup.details && popup.details_type == 'INVOICE_NAME' &&
+                        {popup.details && popup.details_type === 'INVOICE_NAME' &&
                             <InvoiceListView with_names={popup.details} />
                         }
                     </Modal.Body>
