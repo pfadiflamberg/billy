@@ -1,4 +1,5 @@
 import {createSlice, PayloadAction} from "@reduxjs/toolkit";
+import { Key } from "hoist-non-react-statics/node_modules/@types/react";
 import {AppThunk, RootState} from "../../app/store";
 import { unauthenticated } from "../auth/authSlice";
 
@@ -31,13 +32,13 @@ export const popupSlice = createSlice({
         newPopup: (state, action: PayloadAction<Popup>) => {
             state.popups.push(action.payload);
         },
-        clearPopups: (state) => {
-            state.popups = []
-        }
+        removePopup: (state, action: PayloadAction<number>) => {
+            delete state.popups[action.payload];
+        },
     }
 })
 
-const { newPopup, clearPopups } = popupSlice.actions;
+const { newPopup, removePopup } = popupSlice.actions;
 
 export const handleError = (error: any): AppThunk => async (
     dispatch
@@ -52,7 +53,7 @@ export const handleError = (error: any): AppThunk => async (
     dispatch(newPopup(error));
 }
 
-export { newPopup, clearPopups };
+export { newPopup, removePopup };
 
 export const selectPopups = (state: RootState) => state.popup.popups;
 
