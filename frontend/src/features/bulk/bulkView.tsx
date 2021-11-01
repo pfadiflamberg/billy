@@ -149,8 +149,6 @@ export function BulkView() {
                                 <div>
                                     <InvoiceStatusView />
                                     <div style={{ paddingTop: '15px' }} />
-                                    <InvoiceListView />
-                                    <div style={{ paddingTop: '15px' }} />
                                 </div>
                             }
                             {readOnly &&
@@ -179,6 +177,12 @@ export function BulkView() {
                                     <Button variant="primary" type="submit" onClick={() => (bulk) ? dispatch(updateBulk(bulk)) : true} >
                                         Save
                                     </Button>
+                                </div>
+                            }
+                            {bulk && bulk.status !== 'draft' &&
+                                <div>
+                                    <div style={{ paddingTop: '15px' }} />
+                                    <InvoiceListView show_filter={true} />
                                 </div>
                             }
                         </Modal.Body>

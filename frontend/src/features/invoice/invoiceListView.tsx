@@ -1,6 +1,7 @@
 import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectInvoices, annulInvoice, viewPDF, Invoice } from "./invoiceSlice";
-import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
+import { Form, ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
+import { useState } from "react";
 
 export function badgeVariantForStatus(status: string): string {
     switch (status) {
@@ -22,6 +23,8 @@ export function InvoiceListView(props: any) {
     const dispatch = useAppDispatch();
     const allInvoices = useAppSelector(selectInvoices);
 
+    const [filter, setFilter] = useState<string>('');
+
     var invoices = Object.values(allInvoices).sort((a: Invoice, b: Invoice) => {
         if (a.status < b.status) {
             return 1;
@@ -29,12 +32,39 @@ export function InvoiceListView(props: any) {
             return -1;
         }
     });
+
     if (props.with_names) {
         invoices = invoices.filter(i => props.with_names.includes(i.name));
     }
 
+    if (props.show_filter && filter !== '') {
+        invoices = invoices.filter(i => {
+            var include = false;
+            [i.esr, i.recipient_name].forEach((field) => {
+                console.log(field);
+                console.log()
+                if (field.toLowerCase().includes(filter.toLowerCase())) {
+                    include = true;
+                }
+            })
+            return include;
+        });
+    }
+
     return (
         <div className="InvoiceListView">
+            {props.show_filter &&
+                <Form>
+                    <Form.Group>
+                        <Form.Control
+                            name="invoice search"
+                            type="text"
+                            onChange={e => setFilter(e.target.value)}
+                            placeholder="Find invoice...">
+                        </Form.Control>
+                    </Form.Group>
+                </Form>
+            }
             <ListGroup>
                 {invoices.map((invoice) => {
                     return (
