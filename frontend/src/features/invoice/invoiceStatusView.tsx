@@ -1,6 +1,7 @@
 import { useAppSelector } from "../../app/hooks";
 import { ProgressBar } from 'react-bootstrap';
 import { selectInvoices } from "./invoiceSlice";
+import { badgeVariantForStatus } from "./invoiceListView";
 
 function fraction(total: number, count: number): number {
     return 100 * count / total;
@@ -9,16 +10,30 @@ function fraction(total: number, count: number): number {
 export function InvoiceStatusView() {
 
     const invoices = useAppSelector(selectInvoices);
-
     var invoiceList = Object.values(invoices);
-    var countPaid = invoiceList.filter(i => i.status === 'paid').length
-    var countAnnulled = invoiceList.filter(i => i.status === 'annulled').length
+
+    interface info {
+        count: number,
+        status: string
+    }
+
+    var infos: info[] = ['pending', 'paid', 'annulled'].map((status) => {
+        return {
+            'count': invoiceList.filter(i => i.status === status).length,
+            'status': status
+        }
+    });
 
     return (
         <div>
+            {invoiceList.length} Invoices ({infos.map((info) => { return info.count + " " + info.status }).join(', ')})
             <ProgressBar>
-                <ProgressBar variant="success" now={fraction(invoiceList.length, countPaid)} key={1} />
-                <ProgressBar variant="secondary" now={fraction(invoiceList.length, countAnnulled)} key={2} />
+                {infos.map((info, idx) => {
+                    return <ProgressBar
+                        variant={badgeVariantForStatus(info.status)}
+                        now={fraction(invoiceList.length, info.count)}
+                        key={idx} />
+                })}
             </ProgressBar>
         </div>
     )
