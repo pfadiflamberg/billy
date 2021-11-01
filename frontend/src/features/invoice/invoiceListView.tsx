@@ -2,7 +2,7 @@ import { useAppSelector, useAppDispatch } from "../../app/hooks";
 import { selectInvoices, annulInvoice, viewPDF, Invoice } from "./invoiceSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
-function badgeVariantForStatus(status: string): string {
+export function badgeVariantForStatus(status: string): string {
     switch (status) {
         case 'pending':
             return 'primary'
@@ -56,28 +56,30 @@ export function InvoiceListView(props: any) {
                                 <Col xs={3}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                         <ButtonGroup size="sm">
-
                                             <Button
                                                 onClick={e => e.stopPropagation()}
                                                 variant={badgeVariantForStatus(invoice.status)}>
                                                 {invoice.status}
                                             </Button>
-                                            <DropdownButton
-                                                as={ButtonGroup}
-                                                title={''}
-                                                id={invoice.name}
-                                                size="sm"
-                                                variant={badgeVariantForStatus(invoice.status)}
-                                                onClick={e => e.stopPropagation()}
-                                            >
-                                                <Dropdown.Item onClick={e => dispatch(viewPDF(invoice))}>View PDF</Dropdown.Item>
-                                                {invoice.status === 'pending' &&
-                                                    <div>
-                                                        <Dropdown.Divider />
-                                                        <Dropdown.Item onClick={e => dispatch(annulInvoice(invoice))}>Annul</Dropdown.Item>
-                                                    </div>
-                                                }
-                                            </DropdownButton>
+                                            {invoice.status != 'annulled' &&
+                                                <DropdownButton
+                                                    as={ButtonGroup}
+                                                    title={''}
+                                                    id={invoice.name}
+                                                    size="sm"
+                                                    variant={badgeVariantForStatus(invoice.status)}
+                                                    active={invoice.status != 'annulled'}
+                                                    onClick={e => e.stopPropagation()}
+                                                >
+                                                    <Dropdown.Item onClick={e => dispatch(viewPDF(invoice))}>View PDF</Dropdown.Item>
+                                                    {invoice.status === 'pending' &&
+                                                        <div>
+                                                            <Dropdown.Divider />
+                                                            <Dropdown.Item onClick={e => dispatch(annulInvoice(invoice))}>Annul</Dropdown.Item>
+                                                        </div>
+                                                    }
+                                                </DropdownButton>
+                                            }
                                         </ButtonGroup>
                                     </div>
                                 </Col>
