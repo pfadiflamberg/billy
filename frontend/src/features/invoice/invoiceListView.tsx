@@ -41,8 +41,6 @@ export function InvoiceListView(props: any) {
         invoices = invoices.filter(i => {
             var include = false;
             [i.esr, i.recipient_name].forEach((field) => {
-                console.log(field);
-                console.log()
                 if (field.toLowerCase().includes(filter.toLowerCase())) {
                     include = true;
                 }

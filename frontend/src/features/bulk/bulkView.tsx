@@ -4,6 +4,8 @@ import { selectShowUpdateBulkView, selectSelectedBulk, selectEmailPreviewBulkVie
 import { selectInvoices } from "../invoice/invoiceSlice";
 import { InvoiceListView } from "../invoice/invoiceListView";
 import { InvoiceStatusView } from "../invoice/invoiceStatusView";
+import { useState, useEffect } from "react";
+import { store } from "../../app/store";
 
 export function BulkView() {
 
@@ -33,8 +35,25 @@ export function BulkView() {
         return 'due in ' + Math.ceil(diff / (1000 * 60 * 60 * 24));
     }
 
-    var skipIncomplete: boolean = false;
-    var email_text: string = (bulk) ? bulk.text_mail : '';
+    interface State {
+        skipIncomplete: boolean,
+        includeInvoice: boolean
+        email_text: string
+    }
+
+    const [values, setValues] = useState<State>({
+        skipIncomplete: false,
+        includeInvoice: true,
+        email_text: (bulk) ? bulk.text_mail : ''
+    });
+
+    useEffect(() => {
+        setValues({
+            skipIncomplete: false,
+            includeInvoice: true,
+            email_text: (bulk) ? bulk.text_mail : ''
+        })
+    }, [emailPreview, dispatch]);
 
     return (
         <div>
@@ -54,17 +73,18 @@ export function BulkView() {
                                     name="text_mail"
                                     type="text"
                                     style={{ height: '300px' }}
-                                    onChange={e => email_text = e.target.value}
-                                    defaultValue={email_text}>
+                                    onChange={e => setValues({ ...values, ['email_text']: e.target.value })}
+                                    defaultValue={values.email_text}>
                                 </Form.Control>
                             </Form.Group>
                             <Form>
-                                <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => skipIncomplete = e.target.checked} />
+                                <Form.Check type={'checkbox'} label={'Include Invoice'} onChange={e => setValues({ ...values, ['includeInvoice']: e.target.checked })} checked={values.includeInvoice} />
+                                <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => setValues({ ...values, ['skipIncomplete']: e.target.checked })} checked={values.skipIncomplete} />
                             </Form>
                         </Modal.Body>
                         <Modal.Footer>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, email_text, { skip: Number(skipIncomplete) })) : true} >
+                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, values.email_text, { skip: Number(values.skipIncomplete), include_invoice: Number(values.includeInvoice) })) : true} >
                                     {isSendingEmail ? 'Sending...' : 'Send'}
                                 </Button>
                             </div>
