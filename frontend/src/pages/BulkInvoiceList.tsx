@@ -1,6 +1,6 @@
 import { useAppSelector, useAppDispatch } from "../app/hooks";
 import { selectBulks, viewPDFs } from "../features/bulk/bulkSlice";
-import { selectBulk, duplicateBulk } from "../features/bulk/bulkSlice";
+import { duplicateBulk } from "../features/bulk/bulkSlice";
 import { ListGroup, Dropdown, Row, Col, ButtonGroup, Button, DropdownButton } from 'react-bootstrap';
 
 function badgeVariantForStatus(status: string): string {
@@ -27,7 +27,7 @@ export function BulkInvoiceList() {
                 {Object.keys(bulks).reverse().map((name) => {
                     const bulk = bulks[name];
                     return (
-                        <ListGroup.Item key={name} action onClick={() => dispatch(selectBulk(bulk))}>
+                        <ListGroup.Item key={name} action onClick={() => window.open(bulk.name, "_self")}>
                             <Row>
                                 <Col>
                                     <div className="BulkInvoiceListTitle">
@@ -54,16 +54,16 @@ export function BulkInvoiceList() {
                                                 onClick={e => e.stopPropagation()}
                                             >
                                                 {bulk.status === 'draft' &&
-                                                    <Dropdown.Item onClick={e => dispatch(selectBulk(bulk))}>Issue</Dropdown.Item>
+                                                    <Dropdown.Item onClick={e => window.open(bulk.name, "_self")}>Issue</Dropdown.Item>
                                                 }
                                                 {bulk.status === 'issued' &&
                                                     <div>
                                                         <Dropdown.Item onClick={e => dispatch(viewPDFs(bulk))}>Pending invoices as PDF</Dropdown.Item>
-                                                        <Dropdown.Item onClick={e => { dispatch(selectBulk(bulk)) }}>Send as Email</Dropdown.Item>
+                                                        <Dropdown.Item onClick={e => window.open(bulk.name, "_self")}>Send as Email</Dropdown.Item>
                                                     </div>
                                                 }
                                                 <Dropdown.Divider />
-                                                <Dropdown.Item onClick={e => dispatch(selectBulk(bulk))}>View</Dropdown.Item>
+                                                <Dropdown.Item onClick={e => window.open(bulk.name, "_self")}>View</Dropdown.Item>
                                                 <Dropdown.Item onClick={e => dispatch(duplicateBulk(bulk))}>Duplicate</Dropdown.Item>
                                             </DropdownButton>
                                         </ButtonGroup>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from "./app/hooks";
 import { selfConfigure } from "./features/backend/backendSlice";
 import { BulkInvoiceList } from "./pages/BulkInvoiceList";
@@ -11,6 +11,7 @@ import { selectAuthenticatedState } from "./features/auth/authSlice";
 import { AuthView } from "./features/auth/authView";
 import { BulkView } from './features/bulk/bulkView';
 import { PaymentsUploadButton } from './features/payment/paymentUploadButton';
+import { BrowserRouter, Route, Switch } from "react-router-dom";
 
 import './App.css';
 
@@ -31,7 +32,7 @@ function App() {
       {authenticated &&
         <div>
           <Navbar bg="light" expand="lg" fixed="top">
-            <Navbar.Brand href="#home">billy</Navbar.Brand>
+            <Navbar.Brand href="/">billy</Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="ml-auto">
@@ -41,8 +42,14 @@ function App() {
             </Navbar.Collapse>
           </Navbar>
           <PopupView />
-          <BulkView />
-          <BulkInvoiceList />
+          <div className="RootContainer">
+            <BrowserRouter>
+              <Switch>
+                <Route path="/bulk/:bulk_id" component={BulkView} />
+                <Route path="/" component={BulkInvoiceList} />
+              </Switch>
+            </BrowserRouter>
+          </div>
           <BulkCreateView />
         </div>
       }

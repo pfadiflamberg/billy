@@ -25,7 +25,6 @@ export type BulkDict = {
 
 export interface BulkState {
     items: BulkDict,
-    selected: string,
     showCreateBulkView: boolean,
     showUpdateBulkView: boolean,
     showEmailPreviewBulkView: boolean,
@@ -34,7 +33,6 @@ export interface BulkState {
 
 const initialState: BulkState = {
     items: {},
-    selected: '',
     showCreateBulkView: false,
     showUpdateBulkView: false,
     showEmailPreviewBulkView: false,
@@ -77,13 +75,6 @@ export const bulkSlice = createSlice({
         setBulk: (state, { payload }: PayloadAction<Bulk>) => {
             state.items[payload.name] = payload;
         },
-        setSelectedBulk: (state, { payload }: PayloadAction<string>) => {
-            state.selected = payload;
-        },
-        deselectBulk: (state) => {
-            state.selected = '';
-            window.history.replaceState({}, "", window.location.origin);
-        },
         showCreateBulkView: (state, { payload }: PayloadAction<boolean>) => {
             state.showCreateBulkView = payload;
         },
@@ -99,17 +90,7 @@ export const bulkSlice = createSlice({
     }
 })
 
-const { setBulks, setBulk, setSelectedBulk, deselectBulk, showCreateBulkView, showUpdateBulkView, showEmailPreviewBulkView, setSendingEmail } = bulkSlice.actions;
-
-export const selectBulk = (bulk: Bulk): AppThunk => async (
-    dispatch,
-) => {
-    window.history.replaceState({}, "", bulk.name);
-    dispatch(setSelectedBulk(bulk.name));
-    if (bulk.status !== 'draft') {
-        dispatch(fetchInvoicesByBulk(bulk));
-    }
-}
+const { setBulks, setBulk, showCreateBulkView, showUpdateBulkView, showEmailPreviewBulkView, setSendingEmail } = bulkSlice.actions;
 
 export const fetchBulks = (): AppThunk => async (
     dispatch,
@@ -143,7 +124,7 @@ export const createBulk = (data: { [key: string]: string }): AppThunk => async (
             const bulk = r as unknown as Bulk;
             dispatch(setBulk(bulk));
             dispatch(showUpdateBulkView(true));
-            dispatch(selectBulk(bulk));
+            window.open(bulk.name, "_self");
         })
         .catch(e => dispatch(handleError(e)));
 }
@@ -264,18 +245,17 @@ export const viewPDFs = (bulk: Bulk): AppThunk => async (
             window.open(url.toString(), "_self");
         })
         .catch(e => {
-            dispatch(selectBulk(bulk));
+            dispatch(fetchInvoicesByBulk(bulk));
             dispatch(handleError(e));
         });
 }
 
 export const selectBulks = (state: RootState) => state.bulk.items;
-export const selectSelectedBulk = (state: RootState) => state.bulk.selected;
 export const selectShowCreateBulkView = (state: RootState) => state.bulk.showCreateBulkView;
 export const selectShowUpdateBulkView = (state: RootState) => state.bulk.showUpdateBulkView;
 export const selectEmailPreviewBulkView = (state: RootState) => state.bulk.showEmailPreviewBulkView;
 export const selectIsSendingBulk = (state: RootState) => state.bulk.sendingEmail;
 
-export { showCreateBulkView, showUpdateBulkView, showEmailPreviewBulkView, deselectBulk };
+export { showCreateBulkView, showUpdateBulkView, showEmailPreviewBulkView };
 
 export default bulkSlice.reducer;

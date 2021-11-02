@@ -1,29 +1,30 @@
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { Button, Form, Modal } from 'react-bootstrap';
-import { selectShowUpdateBulkView, selectSelectedBulk, selectEmailPreviewBulkView, showUpdateBulkView, showEmailPreviewBulkView, deselectBulk, selectBulks, updateBulk, Bulk, issueBulk, sendBulk, selectIsSendingBulk } from "./bulkSlice";
-import { selectInvoices } from "../invoice/invoiceSlice";
+import { selectShowUpdateBulkView, selectEmailPreviewBulkView, showUpdateBulkView, showEmailPreviewBulkView, selectBulks, updateBulk, Bulk, issueBulk, sendBulk, selectIsSendingBulk } from "./bulkSlice";
+import { selectInvoices, fetchInvoicesByBulk } from "../invoice/invoiceSlice";
 import { InvoiceListView } from "../invoice/invoiceListView";
 import { InvoiceStatusView } from "../invoice/invoiceStatusView";
 import { useState, useEffect } from "react";
-import { store } from "../../app/store";
 
-export function BulkView() {
+export function BulkView(props: { location: any; }) {
+
+    const { location } = props;
 
     const dispatch = useAppDispatch();
 
     const bulks = useAppSelector(selectBulks);
-    const selected = useAppSelector(selectSelectedBulk);
     const update = useAppSelector(selectShowUpdateBulkView);
     const emailPreview = useAppSelector(selectEmailPreviewBulkView);
     const invoices = useAppSelector(selectInvoices);
     const isSendingEmail = useAppSelector(selectIsSendingBulk);
 
     const readOnly = !update;
-    const orgBulk = bulks[selected];
+    const orgBulk = bulks[location.pathname.slice(1)];
     var bulk: Bulk | undefined;
     if (orgBulk) {
         bulk = JSON.parse(JSON.stringify(orgBulk));
     }
+
 
     function DaysTillDue(bulk: Bulk) {
         var due_date = new Date(bulk.due_date);
@@ -48,12 +49,20 @@ export function BulkView() {
     });
 
     useEffect(() => {
+        const bulk = bulks[location.pathname.slice(1)];
         setValues({
             skipIncomplete: false,
             includeInvoice: true,
             email_text: (bulk) ? bulk.text_mail : ''
         })
-    }, [emailPreview, dispatch]);
+    }, [emailPreview, dispatch, bulks, location]);
+
+    useEffect(() => {
+        const bulk = bulks[location.pathname.slice(1)];
+        if (bulk !== undefined && bulk.status !== 'draft') {
+            dispatch(fetchInvoicesByBulk(bulk));
+        }
+    }, [bulks, dispatch, location]);
 
     return (
         <div>
@@ -73,13 +82,13 @@ export function BulkView() {
                                     name="text_mail"
                                     type="text"
                                     style={{ height: '300px' }}
-                                    onChange={e => setValues({ ...values, ['email_text']: e.target.value })}
+                                    onChange={e => setValues({ ...values, 'email_text': e.target.value })}
                                     defaultValue={values.email_text}>
                                 </Form.Control>
                             </Form.Group>
                             <Form>
-                                <Form.Check type={'checkbox'} label={'Include Invoice'} onChange={e => setValues({ ...values, ['includeInvoice']: e.target.checked })} checked={values.includeInvoice} />
-                                <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => setValues({ ...values, ['skipIncomplete']: e.target.checked })} checked={values.skipIncomplete} />
+                                <Form.Check type={'checkbox'} label={'Include Invoice'} onChange={e => setValues({ ...values, 'includeInvoice': e.target.checked })} checked={values.includeInvoice} />
+                                <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => setValues({ ...values, 'skipIncomplete': e.target.checked })} checked={values.skipIncomplete} />
                             </Form>
                         </Modal.Body>
                         <Modal.Footer>
@@ -92,16 +101,11 @@ export function BulkView() {
                     </div>
                 }
             </Modal>
-            <Modal show={bulk !== undefined} onHide={() => {
-                dispatch(showUpdateBulkView(false));
-                dispatch(deselectBulk())
-            }} size="lg">
+            <div>
                 {bulk &&
                     <div>
-                        <Modal.Header closeButton>
-                            <Modal.Title>{bulk.title}</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
+                        <h3>{bulk.title}</h3>
+                        <p>
                             {bulk && bulk.status === 'draft' &&
                                 <Form>
                                     <Form.Group>
@@ -205,10 +209,10 @@ export function BulkView() {
                                     <InvoiceListView show_filter={true} />
                                 </div>
                             }
-                        </Modal.Body>
+                        </p>
                     </div>
                 }
-            </Modal>
+            </div>
         </div>
     )
 

@@ -89,14 +89,14 @@ export function InvoiceListView(props: any) {
                                                 variant={badgeVariantForStatus(invoice.status)}>
                                                 {invoice.status}
                                             </Button>
-                                            {invoice.status != 'annulled' &&
+                                            {invoice.status !== 'annulled' &&
                                                 <DropdownButton
                                                     as={ButtonGroup}
                                                     title={''}
                                                     id={invoice.name}
                                                     size="sm"
                                                     variant={badgeVariantForStatus(invoice.status)}
-                                                    active={invoice.status != 'annulled'}
+                                                    active={invoice.status !== 'annulled'}
                                                     onClick={e => e.stopPropagation()}
                                                 >
                                                     <Dropdown.Item onClick={e => dispatch(viewPDF(invoice))}>View PDF</Dropdown.Item>
