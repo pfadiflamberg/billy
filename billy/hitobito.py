@@ -99,7 +99,6 @@ def parseMailingListPerson(person, verify=True):
         'salutation': "Hallo " + person.get('nickname', person['first_name']),
         'nickname': getNickname(person),
         'shortname': getShortname(person),
-        'role': getRole(person),
         'addr': getAddress(person),
         'emails': getEmails(person),
     }
@@ -112,7 +111,6 @@ def parseHitobitoPerson(person):
         'name': getName(person),
         'nickname': getNickname(person),
         'shortname': getShortname(person),
-        'role': getRole(person),
         'addr': getAddress(person),
         'emails': getEmails(person),
     }
@@ -201,8 +199,3 @@ def getEmails(hitobitoPerson):
     emails = list(set(emails))
     emails.sort()
     return emails
-
-
-def getRole(hitobitoPerson):
-    # TODO: suggest rover, pfadi, biber
-    return 'unknown'

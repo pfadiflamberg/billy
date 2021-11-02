@@ -282,12 +282,13 @@ def sendBulkInvoice(id):
 
     force = bool(request.args.get('force', 0, type=int))
     skip = bool(request.args.get('skip', 0, type=int))
+    include_invoice = bool(request.args.get('include_invoice', 0, type=int))
 
     mail_body = request.json['mail_body']
 
     bi = db.getBulkInvoice(session, id)
     sent_count = 0
-    for success, result in bi.complete_messages(mail_body, generator=True, force=force, skip=skip):
+    for success, result in bi.complete_messages(mail_body, generator=True, force=force, skip=skip, include_invoice=include_invoice):
         if success:
             mail.send(result)
             sent_count += 1
@@ -394,6 +395,7 @@ def sendInvoice(bulk_id, id):
     session = g.session
 
     force = bool(request.args.get('force', 0, type=int))
+    include_invoice = bool(request.args.get('include_invoice', 0, type=int))
 
     mail_body = request.json['mail_body']
 
@@ -401,7 +403,8 @@ def sendInvoice(bulk_id, id):
 
     invoice.bulk_invoice.prepare()
 
-    success, result = invoice.complete_message(mail_body, force=force)
+    success, result = invoice.complete_message(
+        mail_body, force=force, include_invoice=include_invoice)
     if success:
         mail.send(result)
     session.commit()

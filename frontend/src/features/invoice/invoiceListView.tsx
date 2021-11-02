@@ -41,8 +41,6 @@ export function InvoiceListView(props: any) {
         invoices = invoices.filter(i => {
             var include = false;
             [i.esr, i.recipient_name].forEach((field) => {
-                console.log(field);
-                console.log()
                 if (field.toLowerCase().includes(filter.toLowerCase())) {
                     include = true;
                 }
@@ -91,14 +89,14 @@ export function InvoiceListView(props: any) {
                                                 variant={badgeVariantForStatus(invoice.status)}>
                                                 {invoice.status}
                                             </Button>
-                                            {invoice.status != 'annulled' &&
+                                            {invoice.status !== 'annulled' &&
                                                 <DropdownButton
                                                     as={ButtonGroup}
                                                     title={''}
                                                     id={invoice.name}
                                                     size="sm"
                                                     variant={badgeVariantForStatus(invoice.status)}
-                                                    active={invoice.status != 'annulled'}
+                                                    active={invoice.status !== 'annulled'}
                                                     onClick={e => e.stopPropagation()}
                                                 >
                                                     <Dropdown.Item onClick={e => dispatch(viewPDF(invoice))}>View PDF</Dropdown.Item>

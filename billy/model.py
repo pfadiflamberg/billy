@@ -73,7 +73,6 @@ class BulkInvoice(Base):
 
     # Functions for interacting with the BulkInvoice
     def issue(self):
-        # TODO: add functionality
         recipients = hitobito.getMailingListRecipients(self.mailing_list)
         self.invoices = [Invoice(hitobito.parseMailingListPerson(recipient, verify=False), self.create_time.strftime(
             "%Y%m%d"), self.id) for recipient in recipients.values()]
@@ -84,16 +83,15 @@ class BulkInvoice(Base):
         self.status = 'issued'
 
     def close(self):
-        # TODO: add functionality
         self.status = 'closed'
 
-    def complete_messages(self, mail_body, generator=False, force=False, skip=False):
+    def complete_messages(self, mail_body, generator=False, force=False, skip=False, include_invoice=False):
         self.prepare(skip=skip)
 
         if generator:
-            return (invoice.complete_message(mail_body, force) for invoice in self.invoices if invoice.status == "pending")
+            return (invoice.complete_message(mail_body, force, include_invoice) for invoice in self.invoices if invoice.status == "pending")
         else:
-            return [invoice.complete_message(mail_body, force) for invoice in self.invoices if invoice.status == "pending"]
+            return [invoice.complete_message(mail_body, force, include_invoice) for invoice in self.invoices if invoice.status == "pending"]
 
     def prepare(self, skip=False):
         mailinglist_members = hitobito.getMailingListRecipients(
@@ -259,7 +257,7 @@ class Invoice(Base):
 
         return debtor['name'], string
 
-    def complete_message(self, mail_body, force=False):
+    def complete_message(self, mail_body, force=False, include_invoice=False):
         recently_sent = self.last_email_sent and datetime.datetime.utcnow(
         ) - self.last_email_sent < datetime.timedelta(days=30)
         if recently_sent and not force:
@@ -275,8 +273,9 @@ class Invoice(Base):
 
         # double new line for proper rendering in Apple Mail
         msg.body = self.insert_variables(mail_body) + "\n\n"
-        _, string = self.generate()
-        msg.attach("Rechnung.pdf", "application/pdf", string)
+        if include_invoice:
+            _, pdf = self.generate()
+            msg.attach("invoice.pdf", "application/pdf", pdf)
         self.last_email_sent = datetime.datetime.utcnow()
         return True, msg
 
