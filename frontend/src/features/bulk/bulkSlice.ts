@@ -3,7 +3,7 @@ import {AppThunk, RootState} from "../../app/store";
 import {handleError, newPopup, Popup} from "../popup/popupSlice";
 import {fetchInvoicesByBulk} from "../invoice/invoiceSlice";
 import {selectBackendBase} from "../backend/backendSlice";
-import { request, checkRequest } from "../../app/request";
+import { request } from "../../app/request";
 
 const API_PATH_BULK = 'bulk'
 
@@ -240,9 +240,11 @@ export const viewPDFs = (bulk: Bulk): AppThunk => async (
     const BACKEND_BASE = selectBackendBase(getState());
     // we check if API will respond without error before redirecting the user
     var url = new URL(bulk.name + ".pdf", BACKEND_BASE);
-    checkRequest(url)
-        .then(r => {
-            window.open(url.toString(), "_self");
+    var redirectURL = url.toString()
+    url.searchParams.append('check_only', '1')
+    request(url)
+        .then(() => {
+            window.open(redirectURL, "_self");
         })
         .catch(e => {
             dispatch(fetchInvoicesByBulk(bulk));

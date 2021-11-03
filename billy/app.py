@@ -323,12 +323,17 @@ def generateBulkInvoiceZip(id):
 def generateBulkInvoicePDF(id):
     session = g.session
 
+    check_only = bool(request.args.get('check_only', 0, type=int))
+
     bi = db.getBulkInvoice(session, id)
 
     data = io.BytesIO()
     merger = PdfFileMerger()
-    for name, string in bi.generate(skip=True):
-        merger.append(PdfFileReader(io.BytesIO(string)))
+    for _, string in bi.generate(skip=True, check_only=check_only):
+        if not check_only:
+            merger.append(PdfFileReader(io.BytesIO(string)))
+    if check_only:
+        return make_response(jsonify(code=HTTPStatus.OK, message=HTTPStatus.OK.phrase), HTTPStatus.OK)
     merger.write(data)
     data.seek(0)
 
@@ -380,9 +385,14 @@ def annulInvoice(bulk_id, id):
 def generateInvoice(bulk_id, id):
     session = g.session
 
+    check_only = bool(request.args.get('check_only', 0, type=int))
+
     invoice = db.getInvoice(session, id)
     invoice.bulk_invoice.prepare(skip=True)
-    name, binary_pdf = invoice.generate()
+    _, binary_pdf = invoice.generate(check_only=check_only)
+    if check_only:
+        return make_response(jsonify(code=HTTPStatus.OK, message=HTTPStatus.OK.phrase), HTTPStatus.OK)
+
     response = make_response(binary_pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=%s.pdf' % 'invoice'

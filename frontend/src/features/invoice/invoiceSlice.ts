@@ -2,7 +2,7 @@ import {createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {AppThunk, RootState} from "../../app/store";
 import {handleError, newPopup, Popup, PopupAction} from "../popup/popupSlice";
 import {selectBackendBase} from "../backend/backendSlice";
-import { request, checkRequest } from "../../app/request";
+import { request } from "../../app/request";
 import { Bulk } from "../bulk/bulkSlice";
 
 const API_PATH_INVOICE = 'invoice'
@@ -99,9 +99,11 @@ export const viewPDF = (invoice: Invoice): AppThunk => async (
     const BACKEND_BASE = selectBackendBase(getState());
     // we check if API will respond without error before redirecting the user
     var url = new URL(invoice.name + ".pdf", BACKEND_BASE);
-    checkRequest(url)
-        .then(r => {
-            window.open(url.toString(), "_self");
+    var redirectURL = url.toString()
+    url.searchParams.append('check_only', '1')
+    request(url)
+        .then(() => {
+            window.open(redirectURL, "_self");
         })
         .catch(e => dispatch(handleError(e)));
 }
