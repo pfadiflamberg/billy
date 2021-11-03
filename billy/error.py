@@ -85,3 +85,11 @@ class InvoiceNotIssued(BillyError):
     def __init__(self, bulk):
         super().__init__("Invoice not active",
                          "The invoice needs to be in the issued state for this operation.")
+
+
+class CannotCloseBulk(BillyError):
+
+    def __init__(self, invoices):
+        super().__init__("Cannot close bulk",
+                         "There are still pending invoices in this bulk.",
+                         details=invoices, details_type='INVOICE_NAME')

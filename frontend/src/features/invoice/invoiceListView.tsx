@@ -19,7 +19,6 @@ export function badgeVariantForStatus(status: string): string {
 
 export function InvoiceListView(props: any) {
 
-
     const dispatch = useAppDispatch();
     const allInvoices = useAppSelector(selectInvoices);
 
@@ -35,6 +34,9 @@ export function InvoiceListView(props: any) {
 
     if (props.with_names) {
         invoices = invoices.filter(i => props.with_names.includes(i.name));
+        if (props.with_names.length != invoices.length) {
+            console.error('at least one invoice is has not been found')
+        }
     }
 
     if (props.show_filter && filter !== '') {

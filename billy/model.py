@@ -83,6 +83,10 @@ class BulkInvoice(Base):
         self.status = 'issued'
 
     def close(self):
+        pending = [
+            invoice.name for invoice in self.invoices if invoice.status == 'pending']
+        if len(pending) != 0:
+            raise error.CannotCloseBulk(pending)
         self.status = 'closed'
 
     def complete_messages(self, mail_body, generator=False, force=False, skip=False, include_invoice=False):
@@ -116,7 +120,7 @@ class BulkInvoice(Base):
         if len(inaccessible) > 0:
             raise error.InvoiceListError("Invoices not accessible",
                                          "Some recipients are no longer accessible, but their Invoices are still pending",
-                                         [recipient.name for recipient in inaccessible])
+                                         [invoice.name for invoice in inaccessible])
         # parse all participents to make sure they are valid
         if not skip:
             issues = []
