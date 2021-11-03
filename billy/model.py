@@ -139,13 +139,13 @@ class BulkInvoice(Base):
             invoice.status = "annulled"
         return missing
 
-    def generate(self, generator=False, skip=False):
+    def generate(self, generator=False, skip=False, check_only=False):
         self.prepare(skip=skip)
 
         if generator:
-            return (invoice.generate() for invoice in self.invoices if invoice.status == "pending")
+            return (invoice.generate(check_only=check_only) for invoice in self.invoices if invoice.status == "pending")
         else:
-            return [invoice.generate() for invoice in self.invoices if invoice.status == "pending"]
+            return [invoice.generate(check_only=check_only) for invoice in self.invoices if invoice.status == "pending"]
 
     def __repr__(self):
         return "<BulkInvoice(id=%s, title=%s, mailing_list=%s, status=%s, issuing_date=%s, due_date=%s, len(invoices)=%s, create_time=%s, update_time=%s, text_invoice=%s(...), text_reminder=%s(...))>" % (
@@ -244,18 +244,20 @@ class Invoice(Base):
     # Define the relationship between the Invoice and its BulkInvoice
     bulk_invoice = relationship("BulkInvoice", back_populates="invoices")
 
-    def generate(self):
+    def generate(self, check_only=False):
         if(self.bulk_invoice.status != 'issued'):
             raise error.InvoiceNotIssued(self.bulk_invoice)
 
         debtor = hitobito.parseMailingListPerson(
             self.bulk_invoice.people_list[self.recipient], verify=False)
 
-        string = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=env.BANK_IBAN, creditor={
+        if check_only:
+            return debtor['name'], ''
+
+        body = generate.invoicePDF(title=self.bulk_invoice.title, text_body=self.invoice_body, account=env.BANK_IBAN, creditor={
             'name': 'Pfadfinderkorps Flamberg', 'pcode': '8070', 'city': 'Zürich', 'country': 'CH',
         }, ref=self.esr, hitobito_debtor=debtor, hitobito_sender=self.bulk_invoice.user, date=datetime.datetime.utcnow(), date_issued=self.bulk_invoice.issuing_date, due_date=self.bulk_invoice.due_date)
-
-        return debtor['name'], string
+        return debtor['name'], body
 
     def complete_message(self, mail_body, force=False, include_invoice=False):
         recently_sent = self.last_email_sent and datetime.datetime.utcnow(
