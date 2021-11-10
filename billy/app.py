@@ -281,14 +281,13 @@ def sendBulkInvoice(id):
     session = g.session
 
     force = bool(request.args.get('force', 0, type=int))
-    skip = bool(request.args.get('skip', 0, type=int))
     include_invoice = bool(request.args.get('include_invoice', 0, type=int))
 
     mail_body = request.json['mail_body']
 
     bi = db.getBulkInvoice(session, id)
     sent_count = 0
-    for success, result in bi.complete_messages(mail_body, generator=True, force=force, skip=skip, include_invoice=include_invoice):
+    for success, result in bi.complete_messages(mail_body, generator=True, force=force, include_invoice=include_invoice):
         if success:
             mail.send(result)
             sent_count += 1
@@ -329,7 +328,7 @@ def generateBulkInvoicePDF(id):
 
     data = io.BytesIO()
     merger = PdfFileMerger()
-    for _, string in bi.generate(skip=True, check_only=check_only):
+    for _, string in bi.generate(check_only=check_only):
         if not check_only:
             merger.append(PdfFileReader(io.BytesIO(string)))
     if check_only:
@@ -388,7 +387,7 @@ def generateInvoice(bulk_id, id):
     check_only = bool(request.args.get('check_only', 0, type=int))
 
     invoice = db.getInvoice(session, id)
-    invoice.bulk_invoice.prepare(skip=True)
+    invoice.bulk_invoice.prepare()
     _, binary_pdf = invoice.generate(check_only=check_only)
     if check_only:
         return make_response(jsonify(code=HTTPStatus.OK, message=HTTPStatus.OK.phrase), HTTPStatus.OK)

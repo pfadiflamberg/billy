@@ -37,13 +37,11 @@ export function BulkView(props: { location: any; }) {
     }
 
     interface State {
-        skipIncomplete: boolean,
         includeInvoice: boolean
         email_text: string
     }
 
     const [values, setValues] = useState<State>({
-        skipIncomplete: false,
         includeInvoice: true,
         email_text: (bulk) ? bulk.text_mail : ''
     });
@@ -51,7 +49,6 @@ export function BulkView(props: { location: any; }) {
     useEffect(() => {
         const bulk = bulks[location.pathname.slice(1)];
         setValues({
-            skipIncomplete: false,
             includeInvoice: true,
             email_text: (bulk) ? bulk.text_mail : ''
         })
@@ -88,12 +85,11 @@ export function BulkView(props: { location: any; }) {
                             </Form.Group>
                             <Form>
                                 <Form.Check type={'checkbox'} label={'Include Invoice'} onChange={e => setValues({ ...values, 'includeInvoice': e.target.checked })} checked={values.includeInvoice} />
-                                <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => setValues({ ...values, 'skipIncomplete': e.target.checked })} checked={values.skipIncomplete} />
                             </Form>
                         </Modal.Body>
                         <Modal.Footer>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, values.email_text, { skip: Number(values.skipIncomplete), include_invoice: Number(values.includeInvoice) })) : true} >
+                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, values.email_text, { include_invoice: Number(values.includeInvoice) })) : true} >
                                     {isSendingEmail ? 'Sending...' : 'Send'}
                                 </Button>
                             </div>
