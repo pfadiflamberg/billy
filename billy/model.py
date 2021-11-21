@@ -98,6 +98,7 @@ class BulkInvoice(Base):
             return [invoice.complete_message(mail_body, force, include_invoice) for invoice in self.invoices if invoice.status == "pending"]
 
     def prepare(self):
+        logger.info('prepare invoice')
         mailinglist_members = hitobito.getMailingListRecipients(
             self.mailing_list)
         # filter out new recipients that have been added to the mailing list after issuing
@@ -108,6 +109,8 @@ class BulkInvoice(Base):
 
         missing = [invoice for invoice in self.invoices
                    if invoice.recipient not in mailinglist_members.keys() and invoice.status == 'pending']
+        logger.info('missing')
+        logger.info(missing)
         inaccessible = []
         # fetch individual participants that are have been removed from the mailing list via ID
         for invoice in missing:
@@ -117,6 +120,8 @@ class BulkInvoice(Base):
                 inaccessible.append(invoice)
             else:
                 self.people_list[invoice.recipient] = returned_person
+        logger.info('inaccessible')
+        logger.info(inaccessible)
         if len(inaccessible) > 0:
             raise error.InvoiceListError("Invoices not accessible",
                                          "Some recipients are no longer accessible, but their Invoices are still pending",
@@ -270,9 +275,6 @@ class Invoice(Base):
             return False, self
         recipient_emails = hitobito.parseMailingListPerson(
             self.bulk_invoice.people_list[self.recipient], verify=False)['emails']
-        if len(recipient_emails) < 1:
-            logger.info("skip: missing email address")
-            return False, self
         msg = Message(self.bulk_invoice.title, recipients=recipient_emails, bcc=[
                       env.MAIL_DEFAULT_SENDER])
 
