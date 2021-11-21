@@ -59,7 +59,7 @@ def recipientLink(id):
 class RecipientRequiresEmail(BillyError):
 
     def __init__(self, id):
-        super().__init__("Recipient requires Email", "Recipient {id} requires an email address.".format(
+        super().__init__("Recipient requires Email", "Recipient {id} requires an email address envabled for shippment.".format(
             id=id), link=recipientLink(id))
 
 

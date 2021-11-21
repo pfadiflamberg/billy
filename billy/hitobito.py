@@ -91,7 +91,7 @@ def parseMailingListPerson(person, verify=True):
         if len(getEmails(person)) < 1:
             raise error.RecipientRequiresEmail(person['id'])
         for attr in ['address', 'zip_code', 'town']:
-            if person[attr] and len(person[attr]) < 1:
+            if not person[attr]:
                 raise error.RecipientAddressError(person['id'])
     return {
         'id': person['id'],
