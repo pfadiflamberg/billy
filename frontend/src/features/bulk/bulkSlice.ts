@@ -201,6 +201,26 @@ export const issueBulk = (bulk: Bulk): AppThunk => async (
         .catch(e => dispatch(handleError(e)));
 }
 
+export const closeBulk = (bulk: Bulk): AppThunk => async (
+    dispatch,
+    getState,
+) => {
+
+    const BACKEND_BASE = selectBackendBase(getState());
+
+
+
+    request(new URL(bulk.name + ":close", BACKEND_BASE), 'POST')
+        .then(r => {
+            var updated_bulk: Bulk = r as unknown as Bulk;
+            dispatch(setBulk(updated_bulk));
+        })
+        .catch(e => {
+            dispatch(fetchInvoicesByBulk(bulk));
+            dispatch(handleError(e))
+        });
+}
+
 export const sendBulk = (bulk: Bulk, message: string, options = {}): AppThunk => async (
     dispatch,
     getState,

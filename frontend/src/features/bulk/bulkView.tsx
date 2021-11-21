@@ -37,13 +37,11 @@ export function BulkView(props: { location: any; }) {
     }
 
     interface State {
-        skipIncomplete: boolean,
         includeInvoice: boolean
         email_text: string
     }
 
     const [values, setValues] = useState<State>({
-        skipIncomplete: false,
         includeInvoice: true,
         email_text: (bulk) ? bulk.text_mail : ''
     });
@@ -51,7 +49,6 @@ export function BulkView(props: { location: any; }) {
     useEffect(() => {
         const bulk = bulks[location.pathname.slice(1)];
         setValues({
-            skipIncomplete: false,
             includeInvoice: true,
             email_text: (bulk) ? bulk.text_mail : ''
         })
@@ -88,12 +85,11 @@ export function BulkView(props: { location: any; }) {
                             </Form.Group>
                             <Form>
                                 <Form.Check type={'checkbox'} label={'Include Invoice'} onChange={e => setValues({ ...values, 'includeInvoice': e.target.checked })} checked={values.includeInvoice} />
-                                <Form.Check type={'checkbox'} label={'Skip recipients without email address'} onChange={e => setValues({ ...values, 'skipIncomplete': e.target.checked })} checked={values.skipIncomplete} />
                             </Form>
                         </Modal.Body>
                         <Modal.Footer>
                             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, values.email_text, { skip: Number(values.skipIncomplete), include_invoice: Number(values.includeInvoice) })) : true} >
+                                <Button variant="primary" type="submit" disabled={isSendingEmail} onClick={() => (bulk) ? dispatch(sendBulk(bulk, values.email_text, { include_invoice: Number(values.includeInvoice) })) : true} >
                                     {isSendingEmail ? 'Sending...' : 'Send'}
                                 </Button>
                             </div>
@@ -106,69 +102,71 @@ export function BulkView(props: { location: any; }) {
                     <div>
                         <h3>{bulk.title}</h3>
                         <p>
-                            {bulk && bulk.status === 'draft' &&
-                                <Form>
-                                    <Form.Group>
-                                        <Form.Label>Mailing List:</Form.Label>
-                                        <Form.Control readOnly={readOnly}
-                                            name="mailing_list"
-                                            type="text"
-                                            onChange={e => (bulk) ? bulk.mailing_list = e.target.value : true}
-                                            defaultValue={bulk.mailing_list}>
-                                        </Form.Control>
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Label >Title:</Form.Label>
-                                        <Form.Control readOnly={readOnly}
-                                            name="title"
-                                            type="text"
-                                            onChange={e => (bulk) ? bulk.title = e.target.value : true}
-                                            defaultValue={bulk.title}>
-                                        </Form.Control>
-                                    </Form.Group>
-                                    {bulk && bulk.status !== 'draft' &&
+                            <Form>
+                                <Form.Group>
+                                    <Form.Label>Mailing List:</Form.Label>
+                                    <Form.Control readOnly={readOnly}
+                                        name="mailing_list"
+                                        type="text"
+                                        onChange={e => (bulk) ? bulk.mailing_list = e.target.value : true}
+                                        defaultValue={bulk.mailing_list}>
+                                    </Form.Control>
+                                </Form.Group>
+                                {bulk && bulk.status === 'draft' &&
+                                    <div>
                                         <Form.Group>
-                                            <Form.Label>Due Date:</Form.Label>
-                                            <Form.Control readOnly={true}
-                                                name="due_date"
-                                                type="date"
-                                                // onChange={e => (bulk) ? bulk.due_date = new Date(e.target.value).toISOString() : true}
-                                                defaultValue={new Date(bulk.due_date).toISOString().split('T')[0]}>
+                                            <Form.Label >Title:</Form.Label>
+                                            <Form.Control readOnly={readOnly}
+                                                name="title"
+                                                type="text"
+                                                onChange={e => (bulk) ? bulk.title = e.target.value : true}
+                                                defaultValue={bulk.title}>
                                             </Form.Control>
                                         </Form.Group>
-                                    }
-                                    <Form.Group>
-                                        <Form.Label>Email:</Form.Label>
-                                        <Form.Control readOnly={readOnly} as="textarea"
-                                            name="text_mail"
-                                            type="text"
-                                            style={{ height: '300px' }}
-                                            onChange={e => (bulk) ? bulk.text_mail = e.target.value : true}
-                                            defaultValue={bulk.text_mail}>
-                                        </Form.Control>
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Label>Text:</Form.Label>
-                                        <Form.Control readOnly={readOnly} as="textarea"
-                                            name="text_invoice"
-                                            type="text"
-                                            style={{ height: '650px' }}
-                                            onChange={e => (bulk) ? bulk.text_invoice = e.target.value : true}
-                                            defaultValue={bulk.text_invoice}>
-                                        </Form.Control>
-                                    </Form.Group>
-                                    <Form.Group>
-                                        <Form.Label>Reminder:</Form.Label>
-                                        <Form.Control readOnly={readOnly} as="textarea"
-                                            name="text_reminder"
-                                            type="text"
-                                            style={{ height: '650px' }}
-                                            onChange={e => (bulk) ? bulk.text_reminder = e.target.value : true}
-                                            defaultValue={bulk.text_reminder}>
-                                        </Form.Control>
-                                    </Form.Group>
-                                </Form>
-                            }
+                                        {bulk && bulk.status !== 'draft' &&
+                                            <Form.Group>
+                                                <Form.Label>Due Date:</Form.Label>
+                                                <Form.Control readOnly={true}
+                                                    name="due_date"
+                                                    type="date"
+                                                    // onChange={e => (bulk) ? bulk.due_date = new Date(e.target.value).toISOString() : true}
+                                                    defaultValue={new Date(bulk.due_date).toISOString().split('T')[0]}>
+                                                </Form.Control>
+                                            </Form.Group>
+                                        }
+                                        <Form.Group>
+                                            <Form.Label>Email:</Form.Label>
+                                            <Form.Control readOnly={readOnly} as="textarea"
+                                                name="text_mail"
+                                                type="text"
+                                                style={{ height: '300px' }}
+                                                onChange={e => (bulk) ? bulk.text_mail = e.target.value : true}
+                                                defaultValue={bulk.text_mail}>
+                                            </Form.Control>
+                                        </Form.Group>
+                                        <Form.Group>
+                                            <Form.Label>Text:</Form.Label>
+                                            <Form.Control readOnly={readOnly} as="textarea"
+                                                name="text_invoice"
+                                                type="text"
+                                                style={{ height: '650px' }}
+                                                onChange={e => (bulk) ? bulk.text_invoice = e.target.value : true}
+                                                defaultValue={bulk.text_invoice}>
+                                            </Form.Control>
+                                        </Form.Group>
+                                        <Form.Group>
+                                            <Form.Label>Reminder:</Form.Label>
+                                            <Form.Control readOnly={readOnly} as="textarea"
+                                                name="text_reminder"
+                                                type="text"
+                                                style={{ height: '650px' }}
+                                                onChange={e => (bulk) ? bulk.text_reminder = e.target.value : true}
+                                                defaultValue={bulk.text_reminder}>
+                                            </Form.Control>
+                                        </Form.Group>
+                                    </div>
+                                }
+                            </Form>
                             {bulk && bulk.status !== 'draft' &&
                                 <div>
                                     <InvoiceStatusView />
