@@ -102,6 +102,8 @@ class BulkInvoice(Base):
             self.mailing_list)
         # filter out new recipients that have been added to the mailing list after issuing
         active_ids = [invoice.recipient for invoice in self.invoices]
+        annulled_ids = [invoice.recipient for invoice in self.invoices if invoice.status == 'annulled']
+
         self.people_list = dict(
             filter(lambda r: r[0] in active_ids, mailinglist_members.items()))  # recipients ^ mailinglist
         # List of all recipient ids that are no longer in the mailing list, but are not annulled yet.
@@ -125,10 +127,11 @@ class BulkInvoice(Base):
         issues = []
         for id in self.people_list:
             person = self.people_list[id]
-            try:
-                hitobito.parseMailingListPerson(person)
-            except error.BillyError as e:
-                issues.append(e)
+            if id not in annulled_ids:
+                try:
+                    hitobito.parseMailingListPerson(person)
+                except error.BillyError as e:
+                    issues.append(e)
         if len(issues) > 0:
             raise error.MultipleErrors(issues)
         self.user = hitobito.getUser()
